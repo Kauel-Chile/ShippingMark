@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="title">
+        <item name="android:fontFamily">"sans-serif"</item>
+        <item name="android:textColor">@color/blue</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="title.dialog">
+        <item name="android:textSize">30sp</item>
+    </style>
+    <style name="body">
+        <item name="android:fontFamily">"sans-serif"</item>
+        <item name="android:textColor">@color/blue</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+    <style name="body.dialog">
+        <item name="android:fontFamily">"sans-serif"</item>
+        <item name="android:textColor">@color/green</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+    <style name="button">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@drawable/button</item>
+    </style>
+    <style name="button.blue">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@drawable/button_blue</item>
+    </style>
+    <style name="button.green">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@drawable/button_green</item>
+    </style>
+    <style name="img_button">
+        <item name="android:background">@drawable/img_button</item>
+    </style>
+    <style name="button_selected">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@drawable/button_selector</item>
+    </style>
+    <style name="img_standard">
+        <item name="android:background">@drawable/img_button</item>
+    </style>
+    <style name="img_success">
+        <item name="android:background">@drawable/img_success</item>
+    </style>
+    <style name="img_error">
+        <item name="android:background">@drawable/img_error</item>
+    </style>
+    <style name="menu_bottom_image">
+        <item name="android:background">@drawable/corners_menu_bottom</item>
+    </style>
+    <style name="MySnackbar" parent="Widget.MaterialComponents.Snackbar">
+        <item name="android:layout_margin">32dp</item>
+    </style>
+</resources>

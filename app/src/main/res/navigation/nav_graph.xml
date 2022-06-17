@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph.xml"
+    app:startDestination="@id/fragmentLogin">
+
+    <fragment
+        android:id="@+id/fragmentLogin"
+        android:name="com.kauel.shippingmark.ui.login.FragmentLogin"
+        android:label="FragmentLogin"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_fragmentLogin_to_fragmentManuPallet"
+            app:destination="@id/fragmentManuPallet" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentMain"
+        android:name="com.kauel.shippingmark.ui.main.FragmentMain"
+        android:label="FragmentMain"
+        tools:layout="@layout/fragment_main">
+        <action
+            android:id="@+id/action_fragmentMain_to_fragmentManuPallet"
+            app:destination="@id/fragmentManuPallet" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentManuPallet"
+        android:name="com.kauel.shippingmark.ui.menu_pallet.FragmentMenuPallet"
+        android:label="FragmentManuPallet"
+        tools:layout="@layout/fragment_menu_pallet_type">
+        <action
+            android:id="@+id/action_fragmentManuPallet_to_fragmentMain"
+            app:destination="@id/fragmentMain" />
+    </fragment>
+
+</navigation>

@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Shipping Mark</string>
+    <string name="title_rut">Ingrese su rut</string>
+    <string name="get_into">Ingresar</string>
+    <string name="select_pallet_type">Seleccione el tipo de Pallet</string>
+    <string name="base_5">Base 5 \n (Tipo 1) \n #18 etiquetas</string>
+    <string name="base_6">Base 6 \n (Tipo 2) \n #57 etiquetas</string>
+    <string name="base_5.2">Base 5 \n (Tipo 2) \n #11 etiquetas</string>
+    <string name="base_6.2">Base 6 \n (Tipo 2) \n #48 etiquetas</string>
+    <string name="insert_transport_id">Escriba el ID del transporte</string>
+    <string name="send">enviar</string>
+    <string name="title_validate_image">Datos del Pallet</string>
+    <string name="confirm">Confirmar</string>
+    <string name="value_sentry">https://b31ccf2eb1914023b3a47bb94972fe7e@o939500.ingest.sentry.io/6361504</string>
+</resources>

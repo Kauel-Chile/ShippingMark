@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="org.pytorch.">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp">
+
+                <TextView
+                    android:id="@+id/tvBase"
+                    style="@style/title"
+                    android:layout_width="90dp"
+                    android:layout_height="wrap_content"
+                    tools:text="Base 5" />
+
+                <TextView
+                    android:id="@+id/tvId"
+                    style="@style/body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="ID: 300125" />
+
+            </LinearLayout>
+
+            <TextView
+                style="@style/body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Escanea el código UMP." />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/imgScanner"
+            style="@style/img_button"
+            android:layout_width="100dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:src="@drawable/barcode_scanner" />
+
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/edtCodeUMP"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:background="@drawable/edit_text_bg"
+        android:ellipsize="end"
+        android:enabled="false"
+        android:gravity="center_horizontal"
+        android:inputType="text"
+        android:maxLines="1"
+        android:padding="10dp"
+        android:scrollHorizontally="true"
+        android:textColor="@color/blue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edtCodeUMP">
+
+        <TextView
+            style="@style/body"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:text="Toma una fotografía para cada uno de los lados del Pallet" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/imbInfo"
+            style="@style/img_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="20dp"
+            android:src="@drawable/ic_baseline_info" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="8dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="5dp"
+        app:layout_constraintEnd_toEndOf="@+id/linearLayout5"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
+
+        <RelativeLayout
+            android:id="@+id/rl1"
+            style="@style/img_standard"
+            android:layout_width="160dp"
+            android:layout_height="160dp">
+
+            <ImageView
+                android:id="@+id/img_1"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:padding="5dp"
+                android:src="@drawable/camera" />
+
+            <com.kauel.shippingmark.ui.main.ResultView
+                android:id="@+id/resultView1"
+                android:layout_width="160dp"
+                android:layout_height="160dp" />
+
+            <TextView
+                style="@style/img_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:text="1"
+                android:textAlignment="center"
+                android:textColor="@color/blue"
+                android:textSize="21sp" />
+
+            <ProgressBar
+                android:id="@+id/pbImage1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:indeterminateTint="@color/blue"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/ivResultPhoto1"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:visibility="gone"
+                tools:src="@drawable/error"
+                tools:visibility="visible" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/lyManual1"
+            style="@style/menu_bottom_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tvCountImage1"
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="0"
+                    android:textAlignment="center" />
+
+                <TextView
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="/"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/tvCountTotalImage1"
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="15"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/tvCountBox1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvManual1"
+                style="@style/body"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:background="@color/blue"
+                android:text="M"
+                android:textAlignment="center"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
+
+        <RelativeLayout
+            android:id="@+id/rl2"
+            style="@style/img_standard"
+            android:layout_width="160dp"
+            android:layout_height="160dp">
+
+            <ImageView
+                android:id="@+id/img_2"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:padding="5dp"
+                android:src="@drawable/camera" />
+
+            <com.kauel.shippingmark.ui.main.ResultView
+                android:id="@+id/resultView2"
+                android:layout_width="160dp"
+                android:layout_height="160dp" />
+
+            <TextView
+                style="@style/img_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:text="2"
+                android:textAlignment="center"
+                android:textColor="@color/blue"
+                android:textSize="21sp" />
+
+            <ProgressBar
+                android:id="@+id/pbImage2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:indeterminateTint="@color/blue"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/ivResultPhoto2"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:visibility="gone"
+                tools:src="@drawable/success"
+                tools:visibility="visible" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/lyManual2"
+            style="@style/menu_bottom_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tvCountImage2"
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="0"
+                    android:textAlignment="center" />
+
+                <TextView
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="/"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/tvCountTotalImage2"
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="15"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/tvCountBox2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvManual2"
+                style="@style/body"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:background="@color/blue"
+                android:text="M"
+                android:textAlignment="center"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="5dp"
+        app:layout_constraintEnd_toEndOf="@+id/linearLayout7"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout4">
+
+        <RelativeLayout
+            android:id="@+id/rl3"
+            style="@style/img_standard"
+            android:layout_width="160dp"
+            android:layout_height="160dp">
+
+            <ImageView
+                android:id="@+id/img_3"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:padding="5dp"
+                android:src="@drawable/camera" />
+
+            <com.kauel.shippingmark.ui.main.ResultView
+                android:id="@+id/resultView3"
+                android:layout_width="160dp"
+                android:layout_height="160dp" />
+
+            <TextView
+                style="@style/img_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:text="3"
+                android:textAlignment="center"
+                android:textColor="@color/blue"
+                android:textSize="21sp" />
+
+            <ProgressBar
+                android:id="@+id/pbImage3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:indeterminateTint="@color/blue"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/ivResultPhoto3"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:visibility="gone"
+                tools:src="@drawable/success"
+                tools:visibility="visible" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/lyManual3"
+            style="@style/menu_bottom_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tvCountImage3"
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="0"
+                    android:textAlignment="center" />
+
+                <TextView
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="/"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/tvCountTotalImage3"
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="15"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/tvCountBox3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvManual3"
+                style="@style/body"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:background="@color/blue"
+                android:text="M"
+                android:textAlignment="center"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout5">
+
+        <RelativeLayout
+            android:id="@+id/rl4"
+            style="@style/img_standard"
+            android:layout_width="160dp"
+            android:layout_height="160dp">
+
+            <ImageView
+                android:id="@+id/img_4"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:padding="5dp"
+                android:src="@drawable/camera" />
+
+            <com.kauel.shippingmark.ui.main.ResultView
+                android:id="@+id/resultView4"
+                android:layout_width="160dp"
+                android:layout_height="160dp" />
+
+            <TextView
+                style="@style/img_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:text="4"
+                android:textAlignment="center"
+                android:textColor="@color/blue"
+                android:textSize="21sp" />
+
+            <ProgressBar
+                android:id="@+id/pbImage4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:indeterminateTint="@color/blue"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/ivResultPhoto4"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:visibility="gone"
+                tools:src="@drawable/success"
+                tools:visibility="visible" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/lyManual4"
+            style="@style/menu_bottom_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tvCountImage4"
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="0"
+                    android:textAlignment="center" />
+
+                <TextView
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="/"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/tvCountTotalImage4"
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="15"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/tvCountBox4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvManual4"
+                style="@style/body"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:background="@color/blue"
+                android:text="M"
+                android:textAlignment="center"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnValidate"
+        style="@style/button"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/send"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout8"/>
+
+    <ImageView
+        android:id="@+id/ivResultPhoto5"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
