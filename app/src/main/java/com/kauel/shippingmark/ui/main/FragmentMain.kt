@@ -5,10 +5,10 @@ import android.app.Activity.DOWNLOAD_SERVICE
 import android.app.Activity.RESULT_OK
 import android.app.Dialog
 import android.app.DownloadManager
+import android.app.NotificationManager
 import android.content.*
 import android.database.Cursor
-import android.graphics.Bitmap
-import android.graphics.Matrix
+import android.graphics.*
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
@@ -24,6 +24,8 @@ import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.journeyapps.barcodescanner.ScanContract
@@ -48,6 +50,7 @@ import org.pytorch.torchvision.TensorImageUtils
 import java.io.*
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -59,10 +62,11 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
 
     private lateinit var customProgressDialog: Dialog
 
+    private lateinit var notificationManager: NotificationManager
+
     private var idPhone: String? = null
     private var idTransport: String? = null
     private var rutOperator: String? = null
-    private var token: String? = null
 
     private val REQUEST_IMAGE_CAPTURE_1 = 1
     private val REQUEST_IMAGE_CAPTURE_2 = 2
@@ -76,6 +80,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
     private val REQUEST_FULLSCREEN_2 = 10
     private val REQUEST_FULLSCREEN_3 = 11
     private val REQUEST_FULLSCREEN_4 = 12
+    private val REQUEST_SENDDATA = 13
 
     private var typePallet: String? = null
     private var base: String? = null
@@ -119,11 +124,10 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         idTransport = sharedPref.getString("ID_TRANSPORT", "")
         typePallet = sharedPref.getString("TYPE", "")
         rutOperator = sharedPref.getString("RUT_OPERATOR", "")
-        token = sharedPref.getString("TOKEN", "")
         binding?.apply {
             tvBase.text = base
             tvId.text = "ID: $idTransport"
-            edtCodeUMP.setText("100000000025123625")
+            //edtCodeUMP.setText("100000000025123625")
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             @SuppressLint("HardwareIds")
@@ -132,20 +136,8 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         }
         totalCount()
         customProgressDialog = Dialog(requireContext())
-//        val url = "https://drive.google.com/file/d/1jdk8POboxb8jFtrii4DzbiS6WHy8MSw4/view?usp=sharing"
-//        download(url)
-    }
-
-    private fun download(url: String) {
-        val request = DownloadManager.Request(Uri.parse(url))
-            .setTitle("File")
-            .setDescription("Downloading....")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setAllowedOverRoaming(false)
-            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
-                File.separator + "yolov.ptl")
-        val dm = requireActivity().getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-        dm.enqueue(request)
+        notificationManager = requireActivity().getSystemService(AppCompatActivity.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(NOTIFICATION_ID)
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -160,15 +152,16 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
             values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ShippingMark")
             img1.setOnClickListener {
                 if (showImage1) {
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "Image1")
+                    val current = LocalDateTime.now()
+                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "$rutOperator-$current")
                     imageUri1 = activity?.contentResolver?.insert(
                         Images.Media.EXTERNAL_CONTENT_URI, values
                     )
                     takePicture(REQUEST_IMAGE_CAPTURE_1, imageUri1!!)
-                    showImage1 = false
                 } else {
                     if (!dialogFullScreen.isAdded) {
-                        dialogFullScreen.setTargetFragment(this@FragmentMain, REQUEST_FULLSCREEN_1)
+                        dialogFullScreen.setTargetFragment(this@FragmentMain,
+                            REQUEST_FULLSCREEN_1)
                         val args = Bundle()
                         args.putString("image", imageUri1.toString())
                         dialogFullScreen.arguments = args
@@ -179,13 +172,13 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
             }
             img2.setOnClickListener {
                 if (showImage2) {
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "Image2")
+                    val current = LocalDateTime.now()
+                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "$rutOperator-$current")
                     imageUri2 = activity?.contentResolver?.insert(
                         Images.Media.EXTERNAL_CONTENT_URI,
                         values
                     )
                     takePicture(REQUEST_IMAGE_CAPTURE_2, imageUri2!!)
-                    showImage2 = false
                 } else {
                     if (!dialogFullScreen.isAdded) {
                         dialogFullScreen.setTargetFragment(this@FragmentMain, REQUEST_FULLSCREEN_2)
@@ -199,13 +192,13 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
             }
             img3.setOnClickListener {
                 if (showImage3) {
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "Image3")
+                    val current = LocalDateTime.now()
+                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "$rutOperator-$current")
                     imageUri3 = activity?.contentResolver?.insert(
                         Images.Media.EXTERNAL_CONTENT_URI,
                         values
                     )
                     takePicture(REQUEST_IMAGE_CAPTURE_3, imageUri3!!)
-                    showImage3 = false
                 } else {
                     if (!dialogFullScreen.isAdded) {
                         dialogFullScreen.setTargetFragment(this@FragmentMain, REQUEST_FULLSCREEN_3)
@@ -219,13 +212,13 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
             }
             img4.setOnClickListener {
                 if (showImage4) {
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "Image4")
+                    val current = LocalDateTime.now()
+                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "$rutOperator-$current")
                     imageUri4 = activity?.contentResolver?.insert(
                         Images.Media.EXTERNAL_CONTENT_URI,
                         values
                     )
                     takePicture(REQUEST_IMAGE_CAPTURE_4, imageUri4!!)
-                    showImage4 = false
                 } else {
                     if (!dialogFullScreen.isAdded) {
                         dialogFullScreen.setTargetFragment(this@FragmentMain, REQUEST_FULLSCREEN_4)
@@ -290,81 +283,64 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
     }
 
     private fun sendData() {
-        val token = BEARER + token.toString()
         val list = listMultipartImage()
         val current = LocalDateTime.now()
-        val date = Date.from(current.atZone(ZoneId.systemDefault()).toInstant())
         val data = Data(
             id_phone = idPhone.toString(),
             bar_code = binding?.edtCodeUMP?.text.toString(),
-            date = date,
+            date = current.toString(),
             id_transporte = idTransport.toString(),
             pallet_type = base.toString(),
             rut_operador = rutOperator.toString(),
-            image1 = list[0],
+            name_image1 = list[0],
             number_labels1 = binding?.tvCountImage1?.text.toString().toInt(),
             number_box1 = binding?.tvCountBox1?.text.toString().toInt(),
             manual1 = state1 == STATE_MANUAL,
-            image2 = list[1],
+            name_image2 = list[1],
             number_labels2 = binding?.tvCountImage1?.text.toString().toInt(),
             number_box2 = binding?.tvCountBox2?.text.toString().toInt(),
             manual2 = state2 == STATE_MANUAL,
-            image3 = list[2],
+            name_image3 = list[2],
             number_labels3 = binding?.tvCountImage1?.text.toString().toInt(),
             number_box3 = binding?.tvCountBox3?.text.toString().toInt(),
             manual3 = state3 == STATE_MANUAL,
-            image4 = list[3],
+            name_image4 = list[3],
             number_labels4 = binding?.tvCountImage1?.text.toString().toInt(),
             number_box4 = binding?.tvCountBox4?.text.toString().toInt(),
             manual4 = state4 == STATE_MANUAL,
         )
-        viewModel.sendData(
-            data.date.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.id_phone.toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.bar_code.toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.id_transporte.toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.pallet_type.toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.rut_operador.toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.number_labels1.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.number_box1.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.manual1.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.number_labels2.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.number_box2.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.manual2.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.number_labels3.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.number_box3.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.manual3.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.number_labels4.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.number_box4.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.manual4.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-            data.image1,
-            data.image2,
-            data.image3,
-            data.image4,
-        )
+        viewModel.sendData(data)
     }
 
-    private fun listMultipartImage(): List<MultipartBody.Part> {
-        val list = ArrayList<MultipartBody.Part>()
+    private fun listMultipartImage(): List<String> {
+        val list = ArrayList<String>()
         if (imageUri1 != null) {
-            val imagePath = getRealPathFromURI(imageUri1)
-            val image1 = fileToMultipart(File(imagePath), "image1")
-            list.add(image1)
+            val imagePath = getRealPathFromURI(imageUri1, requireActivity())
+            val image1 = imagePath?.let { File(it).name }
+            if (image1 != null) {
+                list.add(image1)
+            }
         }
         if (imageUri2 != null) {
-            val imagePath = getRealPathFromURI(imageUri2)
-            val image2 = fileToMultipart(File(imagePath), "image2")
-            list.add(image2)
+            val imagePath = getRealPathFromURI(imageUri2, requireActivity())
+            val image2 = imagePath?.let { File(it).name }
+            if (image2 != null) {
+                list.add(image2)
+            }
         }
         if (imageUri3 != null) {
-            val imagePath = getRealPathFromURI(imageUri3)
-            val image3 = fileToMultipart(File(imagePath), "image3")
-            list.add(image3)
+            val imagePath = getRealPathFromURI(imageUri3, requireActivity())
+            val image3 = imagePath?.let { File(it).name }
+            if (image3 != null) {
+                list.add(image3)
+            }
         }
         if (imageUri4 != null) {
-            val imagePath = getRealPathFromURI(imageUri4)
-            val image4 = fileToMultipart(File(imagePath), "image4")
-            list.add(image4)
+            val imagePath = getRealPathFromURI(imageUri4, requireActivity())
+            val image4 = imagePath?.let { File(it).name }
+            if (image4 != null) {
+                list.add(image4)
+            }
         }
         return list
     }
@@ -381,9 +357,13 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
 
     private fun showSuccessView(data: ResponseSendData?) {
         customProgressDialog.dismiss()
-        requestDeletePermission(listImage)
-        val dialogFragment = DialogFragmentSendData()
-        dialogFragment.show(requireActivity().supportFragmentManager, CUSTOM_DIALOG)
+        //requestDeletePermission(listImage)
+        if (!customProgressDialog.isShowing) {
+            val dialogFragment = DialogFragmentSendData()
+            dialogFragment.setTargetFragment(this@FragmentMain, REQUEST_SENDDATA)
+            dialogFragment.isCancelable = false
+            dialogFragment.show(this@FragmentMain.requireFragmentManager(), CUSTOM_DIALOG_SEND)
+        }
     }
 
     private fun showLoadingView() {
@@ -514,12 +494,12 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                     when (requestCode) {
                         REQUEST_IMAGE_CAPTURE_1 -> {
                             try {
-                                if (isAdded) {
+                                imageUri1.let { imageUri1 ->
                                     listImage.add(imageUri1!!)
                                     val bitmap =
                                         MediaStore.Images.Media.getBitmap(requireActivity().contentResolver,
                                             imageUri1)
-                                    val path = getRealPathFromURI(imageUri1)
+                                    val path = getRealPathFromURI(imageUri1, requireActivity())
                                     val orientation = getCameraPhotoOrientation(requireContext(),
                                         imageUri1, path)
                                     val rotated = rotateBitmap(bitmap, orientation.toFloat())
@@ -547,7 +527,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                     val bitmap =
                                         MediaStore.Images.Media.getBitmap(requireActivity().contentResolver,
                                             imageUri2)
-                                    val path = getRealPathFromURI(imageUri2)
+                                    val path = getRealPathFromURI(imageUri2, requireActivity())
                                     val orientation =
                                         getCameraPhotoOrientation(requireContext(),
                                             imageUri2, path)
@@ -576,7 +556,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                     val bitmap =
                                         MediaStore.Images.Media.getBitmap(requireActivity().contentResolver,
                                             imageUri3)
-                                    val path = getRealPathFromURI(imageUri3)
+                                    val path = getRealPathFromURI(imageUri3, requireActivity())
                                     val orientation =
                                         getCameraPhotoOrientation(requireContext(),
                                             imageUri3, path)
@@ -605,7 +585,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                     val bitmap =
                                         MediaStore.Images.Media.getBitmap(requireActivity().contentResolver,
                                             imageUri4)
-                                    val path = getRealPathFromURI(imageUri4)
+                                    val path = getRealPathFromURI(imageUri4, requireActivity())
                                     val orientation =
                                         getCameraPhotoOrientation(requireContext(),
                                             imageUri4, path)
@@ -629,54 +609,50 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                         }
                         REQUEST_DIALOGFRAGMENT_1 -> {
                             val value = data?.extras?.getString("value", "0")
-                            val total1 = tvCountTotalImage1.text.toString().toInt()
-                            if (value != null && value.toInt() > 0 && value.toInt() <= total1) {
+                            if (value != null && value.toInt() > 0) {
                                 manualData(textView = tvCountImage1,
                                     relativeLayout = rl1,
                                     imageView = ivResultPhoto1,
                                     value = value,
                                     numberImage = 1)
                             } else {
-                                view?.makeSnackbar("$ERROR_MANUAL_COUNT_2 $total1", VIEW_ERROR)
+                                view?.makeSnackbar(ERROR_MANUAL_COUNT_2, VIEW_ERROR)
                             }
                         }
                         REQUEST_DIALOGFRAGMENT_2 -> {
                             val value = data?.extras?.getString("value", "0")
-                            val total2 = tvCountTotalImage2.text.toString().toInt()
-                            if (value != null && value.toInt() > 0 && value.toInt() <= total2) {
+                            if (value != null && value.toInt() > 0) {
                                 manualData(textView = tvCountImage2,
                                     relativeLayout = rl2,
                                     imageView = ivResultPhoto2,
                                     value = value,
                                     numberImage = 2)
                             } else {
-                                view?.makeSnackbar("$ERROR_MANUAL_COUNT_2 $total2", VIEW_ERROR)
+                                view?.makeSnackbar(ERROR_MANUAL_COUNT_2, VIEW_ERROR)
                             }
                         }
                         REQUEST_DIALOGFRAGMENT_3 -> {
                             val value = data?.extras?.getString("value", "0")
-                            val total3 = tvCountTotalImage3.text.toString().toInt()
-                            if (value != null && value.toInt() > 0 && value.toInt() <= total3) {
+                            if (value != null && value.toInt() > 0) {
                                 manualData(textView = tvCountImage3,
                                     relativeLayout = rl3,
                                     imageView = ivResultPhoto3,
                                     value = value,
                                     numberImage = 3)
                             } else {
-                                view?.makeSnackbar("$ERROR_MANUAL_COUNT_2 $total3", VIEW_ERROR)
+                                view?.makeSnackbar(ERROR_MANUAL_COUNT_2, VIEW_ERROR)
                             }
                         }
                         REQUEST_DIALOGFRAGMENT_4 -> {
                             val value = data?.extras?.getString("value", "0")
-                            val total4 = tvCountTotalImage4.text.toString().toInt()
-                            if (value != null && value.toInt() > 0 && value.toInt() <= total4) {
+                            if (value != null && value.toInt() > 0) {
                                 manualData(textView = tvCountImage4,
                                     relativeLayout = rl4,
                                     imageView = ivResultPhoto4,
                                     value = value,
                                     numberImage = 4)
                             } else {
-                                view?.makeSnackbar("$ERROR_MANUAL_COUNT_2 $total4", VIEW_ERROR)
+                                view?.makeSnackbar(ERROR_MANUAL_COUNT_2, VIEW_ERROR)
                             }
                         }
                         REQUEST_FULLSCREEN_1 -> {
@@ -725,6 +701,12 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                     imageView = ivResultPhoto4,
                                     textView = tvCountImage4,
                                     resultView = resultView4)
+                            }
+                        }
+                        REQUEST_SENDDATA -> {
+                            val status = data?.extras?.getBoolean("new", false)
+                            if (status == true) {
+                                clearAll()
                             }
                         }
                         else -> {}//view?.makeSnackbar("CANCELED", VIEW_ERROR)
@@ -815,9 +797,21 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
 
                 requireActivity().runOnUiThread(Runnable {
                     val total = textViewTotal.text.toString().toInt()
+//                    val mPaintRectangle = Paint()
 
                     textViewBox.text = resultsBox.size.toString()
                     textView.text = resultsLabel.size.toString()
+//                    val canvas = Canvas(mBitmap)
+//                    for (result in results) {
+//                        mPaintRectangle.strokeWidth = 5f
+//                        mPaintRectangle.style = Paint.Style.STROKE
+//                        when (result.classIndex) {
+//                            1 -> {mPaintRectangle.color = Color.GREEN}
+//                            2 -> {mPaintRectangle.color = Color.RED}
+//                            3 -> {mPaintRectangle.color = Color.YELLOW}
+//                        }
+//                        canvas.drawRect(result.rect, mPaintRectangle)
+//                    }
                     resultView.setResults(results)
                     resultView.invalidate()
                     resultView.visible()
@@ -838,6 +832,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             } else {
                                 STATE_ERROR
                             }
+                            showImage1 = false
                             stateImage1 = true
                         }
                         2 -> {
@@ -846,6 +841,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             } else {
                                 STATE_ERROR
                             }
+                            showImage2 = false
                             stateImage2 = true
                         }
                         3 -> {
@@ -854,6 +850,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             } else {
                                 STATE_ERROR
                             }
+                            showImage3 = false
                             stateImage3 = true
                         }
                         4 -> {
@@ -862,6 +859,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             } else {
                                 STATE_ERROR
                             }
+                            showImage4 = false
                             stateImage4 = true
                         }
                     }
@@ -893,7 +891,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
     }
 
     @Throws(IOException::class)
-    fun modifyOrientation(bitmap: Bitmap, image_absolute_path: String?): Bitmap? {
+    private fun modifyOrientation(bitmap: Bitmap, image_absolute_path: String?): Bitmap? {
         val ei = ExifInterface(image_absolute_path!!)
         return when (ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
             ExifInterface.ORIENTATION_NORMAL)) {
@@ -945,13 +943,13 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         return Uri.parse(path)
     }
 
-    private fun getRealPathFromURI(uri: Uri?): String? {
-        val cursor: Cursor? =
-            uri?.let { activity?.contentResolver?.query(it, null, null, null, null) }
-        cursor?.moveToFirst()
-        val idx: Int? = cursor?.getColumnIndex(Images.ImageColumns.DATA)
-        return idx?.let { cursor.getString(it) }
-    }
+//    private fun getRealPathFromURI(uri: Uri?): String? {
+//        val cursor: Cursor? =
+//            uri?.let { activity?.contentResolver?.query(it, null, null, null, null) }
+//        cursor?.moveToFirst()
+//        val idx: Int? = cursor?.getColumnIndex(Images.ImageColumns.DATA)
+//        return idx?.let { cursor.getString(it) }
+//    }
 
     private fun validateFields(): Boolean {
         binding?.apply {

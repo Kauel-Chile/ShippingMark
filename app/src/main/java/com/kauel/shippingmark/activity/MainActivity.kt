@@ -1,6 +1,7 @@
 package com.kauel.shippingmark.activity
 
 import android.Manifest
+import android.app.NotificationManager
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -9,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import com.kauel.shippingmark.R
+import com.kauel.shippingmark.utils.NOTIFICATION_ID
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -19,6 +21,8 @@ class MainActivity : AppCompatActivity() {
     private var isWritePermissionGranted = false
     private var isLocationPermissionGranted = false
     private var isCameraPermissionGranted = false
+
+    private lateinit var notificationManager: NotificationManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +67,12 @@ class MainActivity : AppCompatActivity() {
         if (permissionRequest.isNotEmpty()) {
             permissionLauncher.launch(permissionRequest.toTypedArray())
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(NOTIFICATION_ID)
     }
 
 }

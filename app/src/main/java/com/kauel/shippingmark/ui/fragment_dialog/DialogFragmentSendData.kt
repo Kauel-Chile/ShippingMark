@@ -1,6 +1,8 @@
 package com.kauel.shippingmark.ui.fragment_dialog
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -27,13 +29,13 @@ class DialogFragmentSendData : DialogFragment(R.layout.dialog_fragment_send_data
     private fun setUpView() {
         binding?.apply {
             btnNewPalett.setOnClickListener {
-                isNew(false)
-                findNavController().lifeCycleNavigate(lifecycleScope, R.id.fragmentManuPallet)
+                val i: Intent = Intent().putExtra("new",true)
+                targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, i)
                 dismiss()
             }
             btnNewRecord.setOnClickListener {
                 isNew(true)
-                findNavController().lifeCycleNavigate(lifecycleScope, R.id.fragmentManuPallet)
+                findNavController().lifeCycleNavigate(lifecycleScope, R.id.fragmentMenuPallet)
                 dismiss()
             }
         }

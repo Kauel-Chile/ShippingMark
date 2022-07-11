@@ -8,8 +8,6 @@ import com.google.gson.annotations.SerializedName
 data class ResponseSendData(
     @SerializedName("data")
     val data: ResponseData,
-    @SerializedName("filesResponse")
-    val filesResponse: String,
     @SerializedName("message")
     @PrimaryKey
     val message: String

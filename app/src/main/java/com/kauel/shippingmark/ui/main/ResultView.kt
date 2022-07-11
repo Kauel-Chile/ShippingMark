@@ -6,6 +6,7 @@
 package com.kauel.shippingmark.ui.main
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -16,6 +17,7 @@ class ResultView(context: Context?, attrs: AttributeSet?) : View(context, attrs)
     private var mPaintRectangle: Paint? = null
     private var mPaintText: Paint? = null
     private var mResults: ArrayList<Result>? = null
+    private var image: Bitmap? = null
 
     init {
         mPaintRectangle = Paint()
@@ -23,7 +25,6 @@ class ResultView(context: Context?, attrs: AttributeSet?) : View(context, attrs)
     }
 
     override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
         if (mResults == null) return
         for (result in mResults!!) {
             mPaintRectangle!!.strokeWidth = 5f
@@ -35,6 +36,7 @@ class ResultView(context: Context?, attrs: AttributeSet?) : View(context, attrs)
             }
             canvas.drawRect(result.rect, mPaintRectangle!!)
         }
+        super.onDraw(canvas)
     }
 
     fun setResults(results: ArrayList<Result>?) {

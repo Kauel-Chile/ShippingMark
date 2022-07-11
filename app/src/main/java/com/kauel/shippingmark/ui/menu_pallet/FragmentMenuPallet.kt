@@ -40,12 +40,9 @@ class FragmentMenuPallet : Fragment(R.layout.fragment_menu_pallet_type) {
             btnBase6.setOnClickListener {
                 selectedBase(BASE_6, TYPE_1)
             }
-//            btnBase52.setOnClickListener {
-//                selectedBase(BASE_5, TYPE_2)
-//            }
-//            btnBase62.setOnClickListener {
-//                selectedBase(BASE_6, TYPE_2)
-//            }
+            btnUploadImage.setOnClickListener {
+                findNavController().navigate(R.id.action_fragmentManuPallet_to_fragmentUploadImage)
+            }
         }
     }
 
@@ -53,7 +50,7 @@ class FragmentMenuPallet : Fragment(R.layout.fragment_menu_pallet_type) {
         val id = binding?.edtIdTransport?.text?.trim().toString()
         if (id.isNotEmpty()) {
             saveData(base, id, type)
-            findNavController().navigate(R.id.action_fragmentManuPallet_to_fragmentMain)
+            findNavController().navigate(R.id.action_fragmentMenuPallet_to_fragmentMain)
         } else {
             view?.makeSnackbar(ERROR_ID_TRANSPORT, VIEW_ERROR)
         }

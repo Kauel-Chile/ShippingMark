@@ -12,4 +12,6 @@
     <string name="title_validate_image">Datos del Pallet</string>
     <string name="confirm">Confirmar</string>
     <string name="value_sentry">https://b31ccf2eb1914023b3a47bb94972fe7e@o939500.ingest.sentry.io/6361504</string>
+    <string name="title_upload_image">Subir imágenes</string>
+    <string name="back">volver</string>
 </resources>

@@ -1,7 +1,9 @@
 package com.kauel.shippingmark.utils
 
+import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
+import android.database.Cursor
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -9,6 +11,7 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat.startIntentSenderForResult
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -90,24 +93,29 @@ fun isOnline(context: Context): Boolean {
     return false
 }
 
-/**
- * Convertir una imagen en un MultipartBody
- */
-fun fileToMultipart(file: File, name: String): MultipartBody.Part {
+fun fileToMultipart(file: File): MultipartBody.Part {
 
     var imageMultipartBody: MultipartBody.Part? = null
     val requestFile: RequestBody =
-        RequestBody.create("image/*".toMediaTypeOrNull(),
+        RequestBody.create("multipart/form-data".toMediaTypeOrNull(),
             file
         )
     val image =
         MultipartBody.Part.createFormData(
-            name,
+            "imagen",
             file.name,
             requestFile
         )
 
     imageMultipartBody = image
 
-    return imageMultipartBody
+    return imageMultipartBody!!
+}
+
+fun getRealPathFromURI(uri: Uri?, activity: Activity): String? {
+    val cursor: Cursor? =
+        uri?.let { activity.contentResolver?.query(it, null, null, null, null) }
+    cursor?.moveToFirst()
+    val idx: Int? = cursor?.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
+    return idx?.let { cursor.getString(it) }
 }
