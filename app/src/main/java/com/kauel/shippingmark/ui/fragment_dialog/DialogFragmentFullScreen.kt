@@ -7,6 +7,7 @@ import android.app.RecoverableSecurityException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.drawable.ColorDrawable
@@ -50,7 +51,14 @@ class DialogFragmentFullScreen : DialogFragment(R.layout.dialog_fragment_fullscr
         dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         arguments?.let { it ->
             imageUri = it.getString("image")?.toUri()
-            binding?.imgFullScreen?.setImageURI(imageUri)
+            val image = it.getString("imageTemp")?.toUri()
+            binding?.apply {
+                if (image != null) {
+                    imgFullScreen.setImageURI(image)
+                } else {
+                    imgFullScreen.setImageURI(imageUri)
+                }
+            }
         }
         init()
         setUpView()

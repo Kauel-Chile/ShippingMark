@@ -102,7 +102,7 @@ object AppModule {
             .fallbackToDestructiveMigration()
             .build()
 
-//    @Provides
-//    fun provideServerDao(db: AppDatabase) = db.sendDataDao()
+    @Provides
+    fun provideDataImagesUploadedDao(db: AppDatabase) = db.dataImagesUploaded()
 
 }

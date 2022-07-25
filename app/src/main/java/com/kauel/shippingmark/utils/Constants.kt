@@ -10,6 +10,8 @@ const val EMAIL_LOGIN = "sm@app.com"
 const val PASSWORD_LOGIN = "Kauelagrosuper2022"
 const val ERROR_NO_INTERNET = "Favor conectar el dispositivo a una red"
 
+const val VALIDATE_PERMISSIONS_CAMERA = "Aceptar uso de camara para poder realizar buen funcionamiento."
+
 const val BASE_5 = "BASE 5"
 const val BASE_6 = "BASE 6"
 const val TYPE_1 = "type 1"
@@ -46,5 +48,7 @@ const val NOTIFICATION_UPLOAD_STOP = "Subida detenida!"
 const val NOTIFICATION_ERROR = "Error al subir imagenes"
 
 const val NOT_BACK = "Subida de imagenes en progreso"
+const val MESSAGE_UPLOADING_IMAGE = "Comenzando subida imagenes"
+const val MESSAGE_UPLOAD_IMAGE_SUCCESS = "Subida de imagenes terminada"
 
 const val KEY_SCANDIT = ""

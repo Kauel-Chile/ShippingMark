@@ -2,10 +2,13 @@ package com.kauel.shippingmark.data.repository
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.net.Uri
+import androidx.lifecycle.LiveData
 import androidx.room.withTransaction
 import com.kauel.shippingmark.api.ApiService
 import com.kauel.shippingmark.api.login.Login
 import com.kauel.shippingmark.api.sendData.Data
+import com.kauel.shippingmark.api.uploadImage.DataImagesUploaded
 import com.kauel.shippingmark.api.uploadImage.FileName
 import com.kauel.shippingmark.api.uploadImage.ResponseFile
 import com.kauel.shippingmark.api.uploadImage.ResponseUpload
@@ -14,6 +17,7 @@ import com.kauel.shippingmark.utils.Resource
 import com.kauel.shippingmark.utils.fileToMultipart
 import com.kauel.shippingmark.utils.networkBoundResource
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.sentry.Sentry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -34,6 +38,7 @@ class Repository @Inject constructor(
     private val sendDataDao = appDatabase.sendDataDao()
     private val loginDao = appDatabase.loginDao()
     private val uploadImageDao = appDatabase.uploadImage()
+    private val dataImagesUploadedDao = appDatabase.dataImagesUploaded()
 
     fun login(user: Login) = networkBoundResource(
         databaseQuery = {
@@ -87,8 +92,7 @@ class Repository @Inject constructor(
         }
     )
 
-    private var flagStop = false
-    private var flagPause = false
+    private var flagStop = true
 
     @SuppressLint("NewApi")
     fun uploadImageCustom(
@@ -102,25 +106,30 @@ class Repository @Inject constructor(
                 var response: ResponseUpload
 
                 val sizeList = listFile.size
-                var flagListFile = listFile
                 var position = 1
 
                 while (position <= sizeList) {
 
-                    if (flagStop) break
+                    val numFile = position - 1
 
-                    if (flagListFile.isNotEmpty()) {
-                        val image = fileToMultipart(flagListFile[0].file)
+                    if (!flagStop) break
+
+                    if (listFile.isNotEmpty()) {
+
+                        val image = fileToMultipart(listFile[numFile].file)
                         val current = LocalDateTime.now()
                         val infoDate =
                             current.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-                        response =
-                            apiService.sendImage(flagListFile[0].name, userName, infoDate, image)
+                        response = apiService.sendImage(listFile[numFile].name,
+                            userName,
+                            infoDate,
+                            image)
 
-                        listMutable.add(ResponseFile(flagListFile[0].uri,
-                            flagListFile[0].file.name,
+                        listMutable.add(ResponseFile(listFile[numFile].uri,
+                            listFile[numFile].file.name,
                             response.status))
-                        flagListFile = flagListFile.drop(1)
+
+                        insertDataImagesUploaded(DataImagesUploaded(listFile[numFile].file.name, response.status))
 
                         emit(Resource.Loading<List<ResponseFile>>(listMutable))
                         position++
@@ -131,16 +140,19 @@ class Repository @Inject constructor(
 
                 emit(Resource.Success<List<ResponseFile>>(listMutable))
             } catch (throwable: Throwable) {
+                Sentry.captureException(throwable)
                 emit(Resource.Error<List<ResponseFile>>(throwable, listMutable))
             }
         }.flowOn(Dispatchers.IO)
     }
 
     fun stopUpload() {
-        flagStop = true
+        flagStop = false
     }
 
-    fun pauseUpload() {
-        flagPause = true
+    suspend fun insertDataImagesUploaded(data: DataImagesUploaded) {
+        appDatabase.withTransaction {
+            dataImagesUploadedDao.insert(data)
+        }
     }
 }

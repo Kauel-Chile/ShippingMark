@@ -1,19 +1,17 @@
 package com.kauel.shippingmark.ui.main
 
+import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity.DOWNLOAD_SERVICE
 import android.app.Activity.RESULT_OK
 import android.app.Dialog
-import android.app.DownloadManager
 import android.app.NotificationManager
 import android.content.*
-import android.database.Cursor
+import android.content.pm.PackageManager
 import android.graphics.*
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.provider.MediaStore.Images
 import android.provider.Settings
@@ -25,7 +23,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.journeyapps.barcodescanner.ScanContract
@@ -38,21 +36,13 @@ import com.kauel.shippingmark.databinding.FragmentMainBinding
 import com.kauel.shippingmark.ui.fragment_dialog.*
 import com.kauel.shippingmark.utils.*
 import dagger.hilt.android.AndroidEntryPoint
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
 import org.pytorch.Module
 import org.pytorch.torchvision.TensorImageUtils
 import java.io.*
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 import java.util.*
-import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
 class FragmentMain : Fragment(R.layout.fragment_main) {
@@ -105,7 +95,13 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
     private var imageUri3: Uri? = null
     private var imageUri4: Uri? = null
 
+    private var fileTemp1: String = ""
+    private var fileTemp2: String = ""
+    private var fileTemp3: String = ""
+    private var fileTemp4: String = ""
+
     private var listImage: ArrayList<Uri> = ArrayList()
+    private val codePermission = 2106
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -136,7 +132,8 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         }
         totalCount()
         customProgressDialog = Dialog(requireContext())
-        notificationManager = requireActivity().getSystemService(AppCompatActivity.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager =
+            requireActivity().getSystemService(AppCompatActivity.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(NOTIFICATION_ID)
     }
 
@@ -151,93 +148,159 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
             values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ShippingMark")
             img1.setOnClickListener {
-                if (showImage1) {
-                    val current = LocalDateTime.now()
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "$rutOperator-$current")
-                    imageUri1 = activity?.contentResolver?.insert(
-                        Images.Media.EXTERNAL_CONTENT_URI, values
-                    )
-                    takePicture(REQUEST_IMAGE_CAPTURE_1, imageUri1!!)
-                } else {
-                    if (!dialogFullScreen.isAdded) {
-                        dialogFullScreen.setTargetFragment(this@FragmentMain,
-                            REQUEST_FULLSCREEN_1)
-                        val args = Bundle()
-                        args.putString("image", imageUri1.toString())
-                        dialogFullScreen.arguments = args
-                        dialogFullScreen.show(this@FragmentMain.requireFragmentManager(),
-                            CUSTOM_DIALOG)
+                val permission = arrayListOf(
+                    Manifest.permission.CAMERA
+                )
+                if (validatePermission(permission.toTypedArray())) {
+                    try {
+                        if (showImage1) {
+                            val current = LocalDateTime.now()
+                            values.put(MediaStore.Images.Media.DISPLAY_NAME,
+                                "$rutOperator-$current")
+                            imageUri1 = activity?.contentResolver?.insert(
+                                Images.Media.EXTERNAL_CONTENT_URI, values
+                            )
+                            takePicture(REQUEST_IMAGE_CAPTURE_1, imageUri1!!)
+                        } else {
+                            if (!dialogFullScreen.isAdded) {
+                                dialogFullScreen.setTargetFragment(this@FragmentMain,
+                                    REQUEST_FULLSCREEN_1)
+                                val args = Bundle()
+                                args.putString("image", imageUri1.toString())
+                                args.putString("imageTemp", fileTemp1)
+                                dialogFullScreen.arguments = args
+                                dialogFullScreen.show(this@FragmentMain.requireFragmentManager(),
+                                    CUSTOM_DIALOG)
+                            }
+                        }
+                    } catch (ex: Exception) {
+                        view?.makeSnackbar(ex.message.toString(), false)
                     }
+                } else {
+                    solicitedPermission(permission.toTypedArray())
                 }
             }
             img2.setOnClickListener {
-                if (showImage2) {
-                    val current = LocalDateTime.now()
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "$rutOperator-$current")
-                    imageUri2 = activity?.contentResolver?.insert(
-                        Images.Media.EXTERNAL_CONTENT_URI,
-                        values
-                    )
-                    takePicture(REQUEST_IMAGE_CAPTURE_2, imageUri2!!)
-                } else {
-                    if (!dialogFullScreen.isAdded) {
-                        dialogFullScreen.setTargetFragment(this@FragmentMain, REQUEST_FULLSCREEN_2)
-                        val args = Bundle()
-                        args.putString("image", imageUri2.toString())
-                        dialogFullScreen.arguments = args
-                        dialogFullScreen.show(this@FragmentMain.requireFragmentManager(),
-                            CUSTOM_DIALOG)
+                val permission = arrayListOf(
+                    Manifest.permission.CAMERA
+                )
+                if (validatePermission(permission.toTypedArray())) {
+                    try {
+                        if (showImage2) {
+                            val current = LocalDateTime.now()
+                            values.put(MediaStore.Images.Media.DISPLAY_NAME,
+                                "$rutOperator-$current")
+                            imageUri2 = activity?.contentResolver?.insert(
+                                Images.Media.EXTERNAL_CONTENT_URI,
+                                values
+                            )
+                            takePicture(REQUEST_IMAGE_CAPTURE_2, imageUri2!!)
+                        } else {
+                            if (!dialogFullScreen.isAdded) {
+                                dialogFullScreen.setTargetFragment(this@FragmentMain,
+                                    REQUEST_FULLSCREEN_2)
+                                val args = Bundle()
+                                args.putString("image", imageUri2.toString())
+                                args.putString("imageTemp", fileTemp2)
+                                dialogFullScreen.arguments = args
+                                dialogFullScreen.show(this@FragmentMain.requireFragmentManager(),
+                                    CUSTOM_DIALOG)
+                            }
+                        }
+                    } catch (ex: Exception) {
+                        view?.makeSnackbar(ex.message.toString(), false)
                     }
+                } else {
+                    solicitedPermission(permission.toTypedArray())
                 }
             }
             img3.setOnClickListener {
-                if (showImage3) {
-                    val current = LocalDateTime.now()
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "$rutOperator-$current")
-                    imageUri3 = activity?.contentResolver?.insert(
-                        Images.Media.EXTERNAL_CONTENT_URI,
-                        values
-                    )
-                    takePicture(REQUEST_IMAGE_CAPTURE_3, imageUri3!!)
-                } else {
-                    if (!dialogFullScreen.isAdded) {
-                        dialogFullScreen.setTargetFragment(this@FragmentMain, REQUEST_FULLSCREEN_3)
-                        val args = Bundle()
-                        args.putString("image", imageUri3.toString())
-                        dialogFullScreen.arguments = args
-                        dialogFullScreen.show(this@FragmentMain.requireFragmentManager(),
-                            CUSTOM_DIALOG)
+                val permission = arrayListOf(
+                    Manifest.permission.CAMERA
+                )
+                if (validatePermission(permission.toTypedArray())) {
+                    try {
+                        if (showImage3) {
+                            val current = LocalDateTime.now()
+                            values.put(MediaStore.Images.Media.DISPLAY_NAME,
+                                "$rutOperator-$current")
+                            imageUri3 = activity?.contentResolver?.insert(
+                                Images.Media.EXTERNAL_CONTENT_URI,
+                                values
+                            )
+                            takePicture(REQUEST_IMAGE_CAPTURE_3, imageUri3!!)
+                        } else {
+                            if (!dialogFullScreen.isAdded) {
+                                dialogFullScreen.setTargetFragment(this@FragmentMain,
+                                    REQUEST_FULLSCREEN_3)
+                                val args = Bundle()
+                                args.putString("image", imageUri3.toString())
+                                args.putString("imageTemp", fileTemp3)
+                                dialogFullScreen.arguments = args
+                                dialogFullScreen.show(this@FragmentMain.requireFragmentManager(),
+                                    CUSTOM_DIALOG)
+                            }
+                        }
+                    } catch (ex: Exception) {
+                        view?.makeSnackbar(ex.message.toString(), false)
                     }
+                } else {
+                    solicitedPermission(permission.toTypedArray())
                 }
             }
             img4.setOnClickListener {
-                if (showImage4) {
-                    val current = LocalDateTime.now()
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, "$rutOperator-$current")
-                    imageUri4 = activity?.contentResolver?.insert(
-                        Images.Media.EXTERNAL_CONTENT_URI,
-                        values
-                    )
-                    takePicture(REQUEST_IMAGE_CAPTURE_4, imageUri4!!)
-                } else {
-                    if (!dialogFullScreen.isAdded) {
-                        dialogFullScreen.setTargetFragment(this@FragmentMain, REQUEST_FULLSCREEN_4)
-                        val args = Bundle()
-                        args.putString("image", imageUri4.toString())
-                        dialogFullScreen.arguments = args
-                        dialogFullScreen.show(this@FragmentMain.requireFragmentManager(),
-                            CUSTOM_DIALOG)
+                val permission = arrayListOf(
+                    Manifest.permission.CAMERA
+                )
+                if (validatePermission(permission.toTypedArray())) {
+                    try {
+                        if (showImage4) {
+                            val current = LocalDateTime.now()
+                            values.put(MediaStore.Images.Media.DISPLAY_NAME,
+                                "$rutOperator-$current")
+                            imageUri4 = activity?.contentResolver?.insert(
+                                Images.Media.EXTERNAL_CONTENT_URI,
+                                values
+                            )
+                            takePicture(REQUEST_IMAGE_CAPTURE_4, imageUri4!!)
+                        } else {
+                            if (!dialogFullScreen.isAdded) {
+                                dialogFullScreen.setTargetFragment(this@FragmentMain,
+                                    REQUEST_FULLSCREEN_4)
+                                val args = Bundle()
+                                args.putString("image", imageUri4.toString())
+                                args.putString("imageTemp", fileTemp4)
+                                dialogFullScreen.arguments = args
+                                dialogFullScreen.show(this@FragmentMain.requireFragmentManager(),
+                                    CUSTOM_DIALOG)
+                            }
+                        }
+                    } catch (ex: Exception) {
+                        view?.makeSnackbar(ex.message.toString(), false)
                     }
+                } else {
+                    solicitedPermission(permission.toTypedArray())
                 }
             }
             imgScanner.setOnClickListener {
-                val options = ScanOptions()
-                options.setDesiredBarcodeFormats(ScanOptions.ONE_D_CODE_TYPES)
-                options.setPrompt("Scan a barcode")
-                options.setCameraId(0) // Use a specific camera of the device
-                options.setBeepEnabled(true)
-                options.setBarcodeImageEnabled(true)
-                barcodeLauncher.launch(options)
+                val permission = arrayListOf(
+                    Manifest.permission.CAMERA
+                )
+                if (validatePermission(permission.toTypedArray())) {
+                    try {
+                        val options = ScanOptions()
+                        options.setDesiredBarcodeFormats(ScanOptions.ONE_D_CODE_TYPES)
+                        options.setPrompt("Scan a barcode")
+                        options.setCameraId(0) // Use a specific camera of the device
+                        options.setBeepEnabled(true)
+                        options.setBarcodeImageEnabled(true)
+                        barcodeLauncher.launch(options)
+                    } catch (ex: Exception) {
+                        view?.makeSnackbar(ex.message.toString(), false)
+                    }
+                } else {
+                    solicitedPermission(permission.toTypedArray())
+                }
             }
             imbInfo.setOnClickListener {
                 showDialogFragmentInfo()
@@ -282,34 +345,69 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         }
     }
 
+    private fun solicitedPermission(permission: Array<String>) {
+        requestPermissions(
+            permission,
+            codePermission + 1
+        )
+    }
+
+    private fun validatePermission(permission: Array<String>): Boolean {
+        return permission.all {
+            return ContextCompat.checkSelfPermission(
+                requireActivity(),
+                it
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
     private fun sendData() {
         val list = listMultipartImage()
         val current = LocalDateTime.now()
-        val data = Data(
-            id_phone = idPhone.toString(),
-            bar_code = binding?.edtCodeUMP?.text.toString(),
-            date = current.toString(),
-            id_transporte = idTransport.toString(),
-            pallet_type = base.toString(),
-            rut_operador = rutOperator.toString(),
-            name_image1 = list[0],
-            number_labels1 = binding?.tvCountImage1?.text.toString().toInt(),
-            number_box1 = binding?.tvCountBox1?.text.toString().toInt(),
-            manual1 = state1 == STATE_MANUAL,
-            name_image2 = list[1],
-            number_labels2 = binding?.tvCountImage1?.text.toString().toInt(),
-            number_box2 = binding?.tvCountBox2?.text.toString().toInt(),
-            manual2 = state2 == STATE_MANUAL,
-            name_image3 = list[2],
-            number_labels3 = binding?.tvCountImage1?.text.toString().toInt(),
-            number_box3 = binding?.tvCountBox3?.text.toString().toInt(),
-            manual3 = state3 == STATE_MANUAL,
-            name_image4 = list[3],
-            number_labels4 = binding?.tvCountImage1?.text.toString().toInt(),
-            number_box4 = binding?.tvCountBox4?.text.toString().toInt(),
-            manual4 = state4 == STATE_MANUAL,
-        )
-        viewModel.sendData(data)
+        binding?.apply {
+            val numberLabels1 =
+                if (tvCountImage1.text == "") 0 else tvCountImage1.text.toString().toInt()
+            val numberLabels2 =
+                if (tvCountImage2.text == "") 0 else tvCountImage2.text.toString().toInt()
+            val numberLabels3 =
+                if (tvCountImage3.text == "") 0 else tvCountImage3.text.toString().toInt()
+            val numberLabels4 =
+                if (tvCountImage4.text == "") 0 else tvCountImage4.text.toString().toInt()
+            val numberBox1 =
+                if (tvCountBox1.text == "") 0 else tvCountBox1.text.toString().toInt()
+            val numberBox2 =
+                if (tvCountBox2.text == "") 0 else tvCountBox2.text.toString().toInt()
+            val numberBox3 =
+                if (tvCountBox3.text == "") 0 else tvCountBox3.text.toString().toInt()
+            val numberBox4 =
+                if (tvCountBox4.text == "") 0 else tvCountBox4.text.toString().toInt()
+
+            val data = Data(
+                id_phone = idPhone.toString(),
+                bar_code = edtCodeUMP.text.toString(),
+                date = current.toString(),
+                id_transporte = idTransport.toString(),
+                pallet_type = base.toString(),
+                rut_operador = rutOperator.toString(),
+                name_image1 = list[0],
+                number_labels1 = numberLabels1,
+                number_box1 = numberBox1,
+                manual1 = state1 == STATE_MANUAL,
+                name_image2 = list[1],
+                number_labels2 = numberLabels2,
+                number_box2 = numberBox2,
+                manual2 = state2 == STATE_MANUAL,
+                name_image3 = list[2],
+                number_labels3 = numberLabels3,
+                number_box3 = numberBox3,
+                manual3 = state3 == STATE_MANUAL,
+                name_image4 = list[3],
+                number_labels4 = numberLabels4,
+                number_box4 = numberBox4,
+                manual4 = state4 == STATE_MANUAL,
+            )
+            viewModel.sendData(data)
+        }
     }
 
     private fun listMultipartImage(): List<String> {
@@ -357,7 +455,6 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
 
     private fun showSuccessView(data: ResponseSendData?) {
         customProgressDialog.dismiss()
-        //requestDeletePermission(listImage)
         if (!customProgressDialog.isShowing) {
             val dialogFragment = DialogFragmentSendData()
             dialogFragment.setTargetFragment(this@FragmentMain, REQUEST_SENDDATA)
@@ -503,6 +600,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                     val orientation = getCameraPhotoOrientation(requireContext(),
                                         imageUri1, path)
                                     val rotated = rotateBitmap(bitmap, orientation.toFloat())
+                                    val fileTemp = File(requireContext().cacheDir, "temp1")
                                     processIaImage(
                                         mBitmap = rotated!!,
                                         imageView = img1,
@@ -514,6 +612,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         relativeLayout = rl1,
                                         numberImage = 1,
                                         textViewBox = tvCountBox1,
+                                        file = fileTemp
                                     )
                                 }
                             } catch (e: Exception) {
@@ -532,6 +631,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         getCameraPhotoOrientation(requireContext(),
                                             imageUri2, path)
                                     val rotated = rotateBitmap(bitmap, orientation.toFloat())
+                                    val fileTemp = File(requireContext().cacheDir, "temp2")
                                     processIaImage(
                                         mBitmap = rotated!!,
                                         imageView = img2,
@@ -543,6 +643,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         relativeLayout = rl2,
                                         numberImage = 2,
                                         textViewBox = tvCountBox2,
+                                        file = fileTemp
                                     )
                                 }
                             } catch (e: Exception) {
@@ -561,6 +662,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         getCameraPhotoOrientation(requireContext(),
                                             imageUri3, path)
                                     val rotated = rotateBitmap(bitmap, orientation.toFloat())
+                                    val fileTemp = File(requireContext().cacheDir, "temp3")
                                     processIaImage(
                                         mBitmap = rotated!!,
                                         imageView = img3,
@@ -572,6 +674,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         relativeLayout = rl3,
                                         numberImage = 3,
                                         textViewBox = tvCountBox3,
+                                        file = fileTemp
                                     )
                                 }
                             } catch (e: Exception) {
@@ -590,6 +693,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         getCameraPhotoOrientation(requireContext(),
                                             imageUri4, path)
                                     val rotated = rotateBitmap(bitmap, orientation.toFloat())
+                                    val fileTemp = File(requireContext().cacheDir, "temp4")
                                     processIaImage(
                                         mBitmap = rotated!!,
                                         imageView = img4,
@@ -601,6 +705,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         relativeLayout = rl4,
                                         numberImage = 4,
                                         textViewBox = tvCountBox4,
+                                        file = fileTemp
                                     )
                                 }
                             } catch (e: Exception) {
@@ -729,6 +834,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         relativeLayout: RelativeLayout,
         numberImage: Int,
         textViewBox: TextView,
+        file: File,
     ) {
 
         var mModule: Module? = null
@@ -753,16 +859,19 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         imageView.setImageBitmap(mBitmap)
         progressBar.visible()
 
+        mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(file))
+        val canvas = Canvas(mBitmap)
+
         val mImgScaleX = mBitmap.width.toFloat() / PrePostProcessor.mInputWidth
         val mImgScaleY = mBitmap.height.toFloat() / PrePostProcessor.mInputHeight
 
         val mIvScaleX =
-            if (mBitmap.width > mBitmap.height) imageView.width.toFloat() / mBitmap.width else imageView.height.toFloat() / mBitmap.height
+            if (mBitmap.width > mBitmap.height) canvas.width.toFloat() / mBitmap.width else canvas.height.toFloat() / mBitmap.height
         val mIvScaleY =
-            if (mBitmap.height > mBitmap.width) imageView.height.toFloat() / mBitmap.height else imageView.width.toFloat() / mBitmap.width
+            if (mBitmap.height > mBitmap.width) canvas.height.toFloat() / mBitmap.height else canvas.width.toFloat() / mBitmap.width
 
-        val mStartX = (imageView.width - mIvScaleX * mBitmap.width) / 2
-        val mStartY = (imageView.height - mIvScaleY * mBitmap.height) / 2
+        val mStartX = (canvas.width - mIvScaleX * mBitmap.width) / 2
+        val mStartY = (canvas.height - mIvScaleY * mBitmap.height) / 2
 
         val timer: Thread = object : Thread() {
             @SuppressLint("SetTextI18n")
@@ -797,24 +906,27 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
 
                 requireActivity().runOnUiThread(Runnable {
                     val total = textViewTotal.text.toString().toInt()
-//                    val mPaintRectangle = Paint()
+                    val mPaintRectangle = Paint()
 
                     textViewBox.text = resultsBox.size.toString()
                     textView.text = resultsLabel.size.toString()
-//                    val canvas = Canvas(mBitmap)
-//                    for (result in results) {
-//                        mPaintRectangle.strokeWidth = 5f
-//                        mPaintRectangle.style = Paint.Style.STROKE
-//                        when (result.classIndex) {
-//                            1 -> {mPaintRectangle.color = Color.GREEN}
-//                            2 -> {mPaintRectangle.color = Color.RED}
-//                            3 -> {mPaintRectangle.color = Color.YELLOW}
-//                        }
-//                        canvas.drawRect(result.rect, mPaintRectangle)
-//                    }
-                    resultView.setResults(results)
-                    resultView.invalidate()
-                    resultView.visible()
+                    for (result in results) {
+                        mPaintRectangle.strokeWidth = 40f
+                        mPaintRectangle.style = Paint.Style.STROKE
+                        when (result.classIndex) {
+                            1 -> {
+                                mPaintRectangle.color = Color.GREEN
+                            }
+                            2 -> {
+                                mPaintRectangle.color = Color.RED
+                            }
+                            3 -> {
+                                mPaintRectangle.color = Color.YELLOW
+                            }
+                        }
+                        canvas.drawRect(result.rect, mPaintRectangle)
+                    }
+                    val file = bitmapToFile(mBitmap, file.path)
                     progressBar.gone()
                     var state = false
                     if (resultsLabel.size == total) {
@@ -832,6 +944,9 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             } else {
                                 STATE_ERROR
                             }
+                            if (file != null) {
+                                fileTemp1 = file.path
+                            }
                             showImage1 = false
                             stateImage1 = true
                         }
@@ -840,6 +955,9 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                 STATE_SUCCESS
                             } else {
                                 STATE_ERROR
+                            }
+                            if (file != null) {
+                                fileTemp2 = file.path
                             }
                             showImage2 = false
                             stateImage2 = true
@@ -850,6 +968,9 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             } else {
                                 STATE_ERROR
                             }
+                            if (file != null) {
+                                fileTemp3 = file.path
+                            }
                             showImage3 = false
                             stateImage3 = true
                         }
@@ -858,6 +979,9 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                 STATE_SUCCESS
                             } else {
                                 STATE_ERROR
+                            }
+                            if (file != null) {
+                                fileTemp4 = file.path
                             }
                             showImage4 = false
                             stateImage4 = true
@@ -869,6 +993,33 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
             }
         }
         timer.start()
+    }
+
+    private fun bitmapToFile(
+        bitmap: Bitmap,
+        path: String,
+    ): File? { // File name like "image.png"
+        //create a file to write bitmap data
+        var file: File? = null
+        return try {
+            file = File(path)
+            file.createNewFile()
+
+            //Convert bitmap to byte array
+            val bos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0, bos) // YOU can also save it in JPEG
+            val bitmapdata = bos.toByteArray()
+
+            //write the bytes in file
+            val fos = FileOutputStream(file)
+            fos.write(bitmapdata)
+            fos.flush()
+            fos.close()
+            file
+        } catch (e: Exception) {
+            e.printStackTrace()
+            file // it will return null
+        }
     }
 
     @Throws(IOException::class)

@@ -8,6 +8,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
+import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -42,6 +43,8 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
     private var mBuilder: NotificationCompat.Builder? = null
 
     private var listFile: ArrayList<UriUpload> = ArrayList()
+    private var listFileUpload: ArrayList<FileName> = ArrayList()
+    private var listNameImagesSuccess: ArrayList<String> = ArrayList()
     private var play = false
     private var stop = false
 
@@ -90,6 +93,8 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
     private fun init() {
         notificationManager =
             activity?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+//        viewModel.deleteAllData()
     }
 
     private fun initObserver() {
@@ -100,27 +105,30 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
                 is Resource.Loading -> showLoadingView(result.data)
             }
         }
+        viewModel.liveData.observe(viewLifecycleOwner) { list->
+            if (list.isNotEmpty()) {
+                list.map {
+                    if (it.status) {
+                        listNameImagesSuccess.add(it.name)
+                    }
+                }
+            }
+        }
     }
 
     private fun showSuccessView(data: List<ResponseFile>?) {
         binding?.apply {
-            val list: ArrayList<Uri> = ArrayList()
-            data?.map {
-                if (it.fileStatus) {
-                    list.add(it.file)
-                }
-            }
-            binding?.apply {
-                tvSlash.gone()
-                lyInfoUpload.gone()
-            }
+            tvNameImage.text = MESSAGE_UPLOAD_IMAGE_SUCCESS
+            tvNumUpload.gone()
+            tvCountImage.gone()
+            tvSlash.gone()
+            progressBar.gone()
             if (stop) {
                 showProgressUpload(codeStop)
             } else {
                 showProgressUpload(codeFinish)
             }
             play = false
-            requestDeletePermission(list)
         }
     }
 
@@ -132,7 +140,14 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
                 tvNameImage.text = data?.last()?.name
                 tvNumUpload.text = num
                 tvSlash.visible()
-                tvCountImage.text = listFile.size.toString()
+                tvCountImage.text = listFileUpload.size.toString()
+                tvNumUpload.visible()
+                tvCountImage.visible()
+            } else {
+                tvNameImage.text = MESSAGE_UPLOADING_IMAGE
+                tvNumUpload.gone()
+                tvCountImage.gone()
+                tvSlash.gone()
             }
             lyInfoUpload.visible()
         }
@@ -143,27 +158,47 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
             lyInfoUpload.gone()
         }
         showProgressUpload(codeError)
+        play = false
         val message = error?.message.toString()
-        Sentry.captureMessage(message)
+        if (error != null) {
+            Sentry.captureException(error)
+        }
         view?.makeSnackbar(message, VIEW_ERROR)
     }
 
     @SuppressLint("NewApi")
     private fun uploadImage() {
-        listFile()
-        if (listFile.size > 0) {
-            val sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: return
-            val rut = sharedPref.getString("RUT_OPERATOR", "")
-            val list: ArrayList<FileName> = ArrayList()
-            listFile.map {
-                val imagePath = getRealPathFromURI(it.uri, requireActivity())
-                val name = it.name.toRequestBody("text/plain".toMediaTypeOrNull())
-                list.add(FileName(File(imagePath!!), it.uri, name))
+        try {
+            listFile()
+            if (listFile.size > 0) {
+                val sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: return
+                val rut = sharedPref.getString("RUT_OPERATOR", "")
+                listFileUpload = ArrayList()
+                listFile.map { listFile ->
+                    var status = true
+
+                    listNameImagesSuccess.forEach { nameImage ->
+                        if (listFile.name == nameImage) {
+                            status = false
+                            return@forEach
+                        }
+                    }
+
+                    if (status) {
+                        val imagePath = getRealPathFromURI(listFile.uri)
+                        val name =
+                            listFile.name.toRequestBody("text/plain".toMediaTypeOrNull())
+                        listFileUpload.add(FileName(File(imagePath!!), listFile.uri, name))
+                    }
+                }
+                viewModel.uploadImage(
+                    rut.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                    listFileUpload,
+                )
+
             }
-            viewModel.uploadImage(
-                rut.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-                list,
-            )
+        } catch (e: Exception) {
+            view?.makeSnackbar(e.message.toString(), VIEW_ERROR)
         }
     }
 
@@ -234,13 +269,13 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-//    private fun getRealPathFromURI(uri: Uri?): String? {
-//        val cursor: Cursor? =
-//            uri?.let { activity?.contentResolver?.query(it, null, null, null, null) }
-//        cursor?.moveToFirst()
-//        val idx: Int? = cursor?.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
-//        return idx?.let { cursor.getString(it) }
-//    }
+    private fun getRealPathFromURI(uri: Uri?): String? {
+        val cursor: Cursor? =
+            uri?.let { activity?.contentResolver?.query(it, null, null, null, null) }
+        cursor?.moveToFirst()
+        val idx: Int? = cursor?.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
+        return idx?.let { cursor.getString(it) }
+    }
 
     private fun requestDeletePermission(uriList: List<Uri>) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -315,7 +350,7 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
                             // https://developer.android.com/reference/kotlin/android/provider/MediaStore#setrequireoriginal
                             uri = MediaStore.setRequireOriginal(uri)
 
-                            listFile.add(UriUpload(uri = uri, name = filename))
+                            listFile.add(UriUpload(uri = uri, name = filename.replace(" ", "")))
                         }
 
                     } while (cursor.moveToNext())

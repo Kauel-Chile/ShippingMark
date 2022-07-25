@@ -1,5 +1,6 @@
 package com.kauel.shippingmark.utils
 
+import android.net.Uri
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -48,4 +49,14 @@ class Converters {
     fun saveResponseUpload(objectToSave: DataImage?): String? {
         return Gson().toJson(objectToSave)
     }
+
+//    @TypeConverter
+//    fun restoreUri(objectToRestore: String?): Uri? {
+//        return Gson().fromJson(objectToRestore, object : TypeToken<Uri?>() {}.type)
+//    }
+//
+//    @TypeConverter
+//    fun saveUri(objectToSave: Uri?): String? {
+//        return Gson().toJson(objectToSave)
+//    }
 }
