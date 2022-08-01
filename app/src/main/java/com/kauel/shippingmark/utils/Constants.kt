@@ -50,5 +50,7 @@ const val NOTIFICATION_ERROR = "Error al subir imagenes"
 const val NOT_BACK = "Subida de imagenes en progreso"
 const val MESSAGE_UPLOADING_IMAGE = "Comenzando subida imagenes"
 const val MESSAGE_UPLOAD_IMAGE_SUCCESS = "Subida de imagenes terminada"
+const val MESSAGE_UPLOAD_IMAGE_STOP = "Subida de imagenes detenida"
+const val MESSAGE_UPLOAD_IMAGE_EMPTY = "No hay imagenes para subir."
 
 const val KEY_SCANDIT = ""

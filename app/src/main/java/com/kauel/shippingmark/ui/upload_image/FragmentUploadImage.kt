@@ -93,8 +93,6 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
     private fun init() {
         notificationManager =
             activity?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-//        viewModel.deleteAllData()
     }
 
     private fun initObserver() {
@@ -118,15 +116,16 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
 
     private fun showSuccessView(data: List<ResponseFile>?) {
         binding?.apply {
-            tvNameImage.text = MESSAGE_UPLOAD_IMAGE_SUCCESS
             tvNumUpload.gone()
             tvCountImage.gone()
             tvSlash.gone()
             progressBar.gone()
             if (stop) {
                 showProgressUpload(codeStop)
+                tvNameImage.text = MESSAGE_UPLOAD_IMAGE_STOP
             } else {
                 showProgressUpload(codeFinish)
+                tvNameImage.text = MESSAGE_UPLOAD_IMAGE_SUCCESS
             }
             play = false
         }
@@ -196,6 +195,14 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
                     listFileUpload,
                 )
 
+            } else {
+                binding?.apply {
+                    tvNameImage.text = MESSAGE_UPLOAD_IMAGE_EMPTY
+                    tvNumUpload.gone()
+                    tvCountImage.gone()
+                    tvSlash.gone()
+                    play = false
+                }
             }
         } catch (e: Exception) {
             view?.makeSnackbar(e.message.toString(), VIEW_ERROR)
@@ -207,6 +214,7 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
         val progress = 0
         val indeterminate = false
         when (status) {
+            //Uploading
             1 -> {
                 mBuilder!!.setContentText("Subidas/restantes: $numImage / ${listFile.size}")
                 notificationManager.notify(NOTIFICATION_ID, mBuilder!!.build())
@@ -214,21 +222,28 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
             2 -> {
                 mBuilder!!.setContentText(NOTIFICATION_UPLOAD_PAUSE)
                     .setProgress(max, progress, indeterminate)
+                    .setOngoing(false)
                 notificationManager.notify(NOTIFICATION_ID, mBuilder!!.build())
             }
+            //STOP
             3 -> {
                 mBuilder!!.setContentText(NOTIFICATION_UPLOAD_STOP)
                     .setProgress(max, progress, indeterminate)
+                    .setOngoing(false)
                 notificationManager.notify(NOTIFICATION_ID, mBuilder!!.build())
             }
+            //FINISH
             4 -> {
                 mBuilder!!.setContentText(NOTIFICATION_UPLOAD_FINISHED)
                     .setProgress(max, progress, indeterminate)
+                    .setOngoing(false)
                 notificationManager.notify(NOTIFICATION_ID, mBuilder!!.build())
             }
+            //ERROR
             5 -> {
                 mBuilder!!.setContentText(NOTIFICATION_ERROR)
                     .setProgress(max, progress, indeterminate)
+                    .setOngoing(false)
                 notificationManager.notify(NOTIFICATION_ID, mBuilder!!.build())
             }
         }
@@ -361,6 +376,7 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
 
     override fun onDestroyView() {
         binding = null
+        notificationManager.cancel(NOTIFICATION_ID)
         super.onDestroyView()
     }
 }

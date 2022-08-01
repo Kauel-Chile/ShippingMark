@@ -19,8 +19,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
     private var isReadPermissionGranted = false
     private var isWritePermissionGranted = false
-    private var isLocationPermissionGranted = false
-    private var isCameraPermissionGranted = false
 
     private lateinit var notificationManager: NotificationManager
 
@@ -37,10 +35,6 @@ class MainActivity : AppCompatActivity() {
                     it[Manifest.permission.READ_EXTERNAL_STORAGE] ?: isReadPermissionGranted
                 isWritePermissionGranted =
                     it[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: isWritePermissionGranted
-//                isLocationPermissionGranted =
-//                    it[Manifest.permission.ACCESS_FINE_LOCATION] ?: isLocationPermissionGranted
-//                isCameraPermissionGranted =
-//                    it[Manifest.permission.CAMERA] ?: isCameraPermissionGranted
 
             }
 
@@ -52,17 +46,11 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
         isWritePermissionGranted = ContextCompat.checkSelfPermission(this,
             Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-//        isLocationPermissionGranted = ContextCompat.checkSelfPermission(this,
-//            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-//        isCameraPermissionGranted = ContextCompat.checkSelfPermission(this,
-//            Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 
         val permissionRequest: MutableList<String> = ArrayList()
 
         if (!isReadPermissionGranted) permissionRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         if (!isWritePermissionGranted) permissionRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//        if (!isLocationPermissionGranted) permissionRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
-//        if (!isCameraPermissionGranted) permissionRequest.add(Manifest.permission.CAMERA)
 
         if (permissionRequest.isNotEmpty()) {
             permissionLauncher.launch(permissionRequest.toTypedArray())
@@ -70,9 +58,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(NOTIFICATION_ID)
+        super.onDestroy()
     }
 
 }

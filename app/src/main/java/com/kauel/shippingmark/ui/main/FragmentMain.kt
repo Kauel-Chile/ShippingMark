@@ -1174,6 +1174,10 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
             tvCountImage2.text = "0"
             tvCountImage3.text = "0"
             tvCountImage4.text = "0"
+            showImage1 = true
+            showImage2 = true
+            showImage3 = true
+            showImage4 = true
         }
     }
 

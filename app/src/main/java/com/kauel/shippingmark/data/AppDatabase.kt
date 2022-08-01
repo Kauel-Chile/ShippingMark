@@ -18,7 +18,7 @@ import com.kauel.shippingmark.utils.Converters
                ResponseSendData::class,
                ResponseUpload::class,
                DataImagesUploaded::class,],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
