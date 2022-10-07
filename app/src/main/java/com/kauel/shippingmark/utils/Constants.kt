@@ -35,7 +35,7 @@ const val ERROR_ID_TRANSPORT = "Ingresar ID"
 const val ERROR_CODE_UMP = "Escanear código UMP válido."
 const val ERROR_PENDING_IMAGE = "Validar imágenes!"
 
-const val ASSETS_NAME = "agrosuper_22_06_22_yolov5l.torchscript.ptl"
+const val ASSETS_NAME = "agrosuper_22_09_30_sin_cajas_330_epochs_best.torchscript.ptl"
 const val FILE_NAME_ASSETS = "agrosuper.txt"
 
 const val NOTIFICATION_CHANNEL_ID = "upload_channel_image"

@@ -107,6 +107,7 @@ class Repository @Inject constructor(
 
                 val sizeList = listFile.size
                 var position = 1
+                flagStop = true
 
                 while (position <= sizeList) {
 
@@ -116,22 +117,27 @@ class Repository @Inject constructor(
 
                     if (listFile.isNotEmpty()) {
 
-                        val image = fileToMultipart(listFile[numFile].file)
-                        val current = LocalDateTime.now()
-                        val infoDate =
-                            current.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-                        response = apiService.sendImage(listFile[numFile].name,
-                            userName,
-                            infoDate,
-                            image)
+                        try {
+                            val image = fileToMultipart(listFile[numFile].file)
+                            val current = LocalDateTime.now()
+                            val infoDate =
+                                current.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                            response = apiService.sendImage(listFile[numFile].name,
+                                userName,
+                                infoDate,
+                                image)
 
-                        listMutable.add(ResponseFile(listFile[numFile].uri,
-                            listFile[numFile].file.name,
-                            response.status))
+                            listMutable.add(ResponseFile(listFile[numFile].uri,
+                                listFile[numFile].file.name,
+                                response.status))
 
-                        insertDataImagesUploaded(DataImagesUploaded(listFile[numFile].file.name, response.status))
+                            insertDataImagesUploaded(DataImagesUploaded(listFile[numFile].file.name, response.status))
 
-                        emit(Resource.Loading<List<ResponseFile>>(listMutable))
+                            emit(Resource.Loading<List<ResponseFile>>(listMutable))
+                        } catch (throwable: Throwable) {
+                            Sentry.captureException(throwable)
+                        }
+
                         position++
                     } else {
                         break

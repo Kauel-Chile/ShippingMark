@@ -28,14 +28,16 @@ class DialogFragmentSendData : DialogFragment(R.layout.dialog_fragment_send_data
 
     private fun setUpView() {
         binding?.apply {
+            var intent = Intent()
             btnNewPalett.setOnClickListener {
-                val i: Intent = Intent().putExtra("new",true)
-                targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, i)
+                intent = Intent().putExtra("new",true)
+                targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, intent)
                 dismiss()
             }
             btnNewRecord.setOnClickListener {
                 isNew(true)
-                findNavController().lifeCycleNavigate(lifecycleScope, R.id.fragmentMenuPallet)
+                intent = Intent().putExtra("new",false)
+                targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, intent)
                 dismiss()
             }
         }

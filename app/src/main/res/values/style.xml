@@ -35,14 +35,17 @@
         <item name="android:background">@drawable/button_green</item>
     </style>
     <style name="img_button">
-        <item name="android:background">@drawable/img_button</item>
+        <item name="android:background">@drawable/radius_rounded</item>
     </style>
     <style name="button_selected">
         <item name="android:textColor">@color/white</item>
         <item name="android:background">@drawable/button_selector</item>
     </style>
+    <style name="container_image">
+        <item name="android:background">@drawable/container_image</item>
+    </style>
     <style name="img_standard">
-        <item name="android:background">@drawable/img_button</item>
+        <item name="android:background">@drawable/img_standard</item>
     </style>
     <style name="img_success">
         <item name="android:background">@drawable/img_success</item>

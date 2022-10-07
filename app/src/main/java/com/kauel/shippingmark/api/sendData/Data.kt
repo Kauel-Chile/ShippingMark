@@ -1,9 +1,7 @@
 package com.kauel.shippingmark.api.sendData
 
 import com.google.gson.annotations.SerializedName
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import java.util.*
+import com.kauel.shippingmark.ui.main.Result
 
 data class Data(
     @SerializedName("date")
@@ -26,6 +24,8 @@ data class Data(
     val number_box1: Int,
     @SerializedName("manual1")
     val manual1: Boolean,
+    @SerializedName("lista_marcas1")
+    val list_mark1: ArrayList<Result>,
     @SerializedName("nombre_imagen2")
     val name_image2: String,
     @SerializedName("numero_etiquetas2")
@@ -34,6 +34,8 @@ data class Data(
     val number_box2: Int,
     @SerializedName("manual2")
     val manual2: Boolean,
+    @SerializedName("lista_marcas2")
+    val list_mark2: ArrayList<Result>,
     @SerializedName("nombre_imagen3")
     val name_image3: String,
     @SerializedName("numero_etiquetas3")
@@ -42,6 +44,8 @@ data class Data(
     val number_box3: Int,
     @SerializedName("manual3")
     val manual3: Boolean,
+    @SerializedName("lista_marcas3")
+    val list_mark3: ArrayList<Result>,
     @SerializedName("nombre_imagen4")
     val name_image4: String,
     @SerializedName("numero_etiquetas4")
@@ -50,4 +54,6 @@ data class Data(
     val number_box4: Int,
     @SerializedName("manual4")
     val manual4: Boolean,
+    @SerializedName("lista_marcas4")
+    val list_mark4: ArrayList<Result>,
 )

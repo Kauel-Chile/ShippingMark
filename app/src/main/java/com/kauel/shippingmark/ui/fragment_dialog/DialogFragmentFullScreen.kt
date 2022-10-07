@@ -42,7 +42,10 @@ class DialogFragmentFullScreen : DialogFragment(R.layout.dialog_fragment_fullscr
     private var binding: DialogFragmentFullscreenBinding? = null
 
     private var imageUri: Uri? = null
+    private var imageUriTemp: Uri? = null
     private lateinit var intentSenderRequest: ActivityResultLauncher<IntentSenderRequest>
+
+    private var showMark: Boolean = true
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -51,12 +54,14 @@ class DialogFragmentFullScreen : DialogFragment(R.layout.dialog_fragment_fullscr
         dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         arguments?.let { it ->
             imageUri = it.getString("image")?.toUri()
-            val image = it.getString("imageTemp")?.toUri()
+            imageUriTemp = it.getString("imageTemp")?.toUri()
             binding?.apply {
-                if (image != null) {
-                    imgFullScreen.setImageURI(image)
+                if (imageUriTemp != null) {
+                    imgFullScreen.setImageURI(imageUriTemp)
+                    imgFullScreenWithoutMark.setImageURI(imageUri)
                 } else {
                     imgFullScreen.setImageURI(imageUri)
+                    imgShowMark.isEnabled = false
                 }
             }
         }
@@ -78,10 +83,26 @@ class DialogFragmentFullScreen : DialogFragment(R.layout.dialog_fragment_fullscr
     private fun setUpView() {
         binding?.apply {
             ivCloseDialog.setOnClickListener {
+                val i: Intent = Intent().putExtra("delete", false)
+                targetFragment?.onActivityResult(targetRequestCode, RESULT_OK, i)
                 dismiss()
             }
             ivDelete.setOnClickListener {
                 imageUri?.let { it1 -> deletePhoto(it1) }
+            }
+            imgShowMark.setOnClickListener {
+                showMark = !showMark
+                imgFullScreen.resetZoom()
+                imgFullScreenWithoutMark.resetZoom()
+                if (showMark) {
+                    imgFullScreen.visible()
+                    imgFullScreenWithoutMark.gone()
+                    imgShowMark.setImageResource(R.drawable.ic_baseline_eye_blue)
+                } else {
+                    imgFullScreen.gone()
+                    imgFullScreenWithoutMark.visible()
+                    imgShowMark.setImageResource(R.drawable.ic_baseline_eye_gray)
+                }
             }
         }
     }

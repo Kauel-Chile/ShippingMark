@@ -57,9 +57,13 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
         super.onViewCreated(view, savedInstanceState)
         val fragmentBinding = FragmentUploadImageBinding.bind(view)
         binding = fragmentBinding
-        init()
-        setUpView()
-        initObserver()
+        try {
+            init()
+            setUpView()
+            initObserver()
+        } catch (ex: Exception) {
+            Sentry.captureException(ex)
+        }
     }
 
     private fun setUpView() {
@@ -103,7 +107,7 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
                 is Resource.Loading -> showLoadingView(result.data)
             }
         }
-        viewModel.liveData.observe(viewLifecycleOwner) { list->
+        viewModel.liveData.observe(viewLifecycleOwner) { list ->
             if (list.isNotEmpty()) {
                 list.map {
                     if (it.status) {
@@ -148,6 +152,7 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
                 tvCountImage.gone()
                 tvSlash.gone()
             }
+            progressBar.visible()
             lyInfoUpload.visible()
         }
     }
@@ -168,6 +173,7 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
     @SuppressLint("NewApi")
     private fun uploadImage() {
         try {
+            listFile = ArrayList()
             listFile()
             if (listFile.size > 0) {
                 val sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: return
@@ -190,10 +196,21 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
                         listFileUpload.add(FileName(File(imagePath!!), listFile.uri, name))
                     }
                 }
-                viewModel.uploadImage(
-                    rut.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
-                    listFileUpload,
-                )
+                if (listFileUpload.size == 0) {
+                    binding?.apply {
+                        tvNameImage.text = MESSAGE_UPLOAD_IMAGE_EMPTY
+                        tvNumUpload.gone()
+                        tvCountImage.gone()
+                        tvSlash.gone()
+                        lyInfoUpload.visible()
+                        play = false
+                    }
+                } else {
+                    viewModel.uploadImage(
+                        rut.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                        listFileUpload,
+                    )
+                }
 
             } else {
                 binding?.apply {
@@ -201,6 +218,7 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
                     tvNumUpload.gone()
                     tvCountImage.gone()
                     tvSlash.gone()
+                    lyInfoUpload.visible()
                     play = false
                 }
             }
@@ -352,9 +370,13 @@ class FragmentUploadImage : Fragment(R.layout.fragment_upload_image) {
                     val displayName =
                         cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DISPLAY_NAME)
 
+                    val path =
+                        cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.RELATIVE_PATH)
+
                     do {
                         val id = cursor.getLong(idIndex)
                         val filename = cursor.getString(displayName)
+                        val path = cursor.getString(path)
 
                         // uri to access file
                         var uri =

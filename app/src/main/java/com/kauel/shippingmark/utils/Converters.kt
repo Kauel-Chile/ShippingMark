@@ -7,6 +7,7 @@ import com.google.gson.reflect.TypeToken
 import com.kauel.shippingmark.api.login.Data
 import com.kauel.shippingmark.api.sendData.ResponseData
 import com.kauel.shippingmark.api.uploadImage.DataImage
+import com.kauel.shippingmark.ui.main.Result
 import java.util.*
 
 class Converters {
@@ -47,6 +48,16 @@ class Converters {
 
     @TypeConverter
     fun saveResponseUpload(objectToSave: DataImage?): String? {
+        return Gson().toJson(objectToSave)
+    }
+
+    @TypeConverter
+    fun restoreListResult(objectToRestore: String?): ArrayList<Result>? {
+        return Gson().fromJson(objectToRestore, object : TypeToken<ArrayList<Result>?>() {}.type)
+    }
+
+    @TypeConverter
+    fun saveListResult(objectToSave: ArrayList<Result>?): String? {
         return Gson().toJson(objectToSave)
     }
 

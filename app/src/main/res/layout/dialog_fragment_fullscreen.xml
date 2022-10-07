@@ -18,7 +18,7 @@
         app:layout_constraintEnd_toStartOf="@+id/ivCloseDialog"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:text="Detalle imágen" />
+        android:text="Detalle imagen" />
 
     <LinearLayout
         android:id="@+id/linearLayout6"
@@ -38,17 +38,12 @@
             android:layout_height="match_parent"
             android:layout_margin="20dp" />
 
-        <!--        <ImageView-->
-        <!--            android:id="@+id/imgFullScreen"-->
-        <!--            android:layout_width="match_parent"-->
-        <!--            android:layout_height="match_parent"-->
-        <!--            android:layout_margin="20dp" />-->
-
-        <com.kauel.shippingmark.ui.main.ResultView
-            android:id="@+id/resultView1"
+        <com.ortiz.touchview.TouchImageView
+            android:id="@+id/imgFullScreenWithoutMark"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="20dp" />
+            android:layout_margin="20dp"
+            android:visibility="gone"/>
 
     </LinearLayout>
 
@@ -66,8 +61,19 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:src="@drawable/ic_baseline_delete_24"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/imgShowMark"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout6" />
+
+    <ImageView
+        android:id="@+id/imgShowMark"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/ic_baseline_eye_blue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/ivDelete"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout6" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

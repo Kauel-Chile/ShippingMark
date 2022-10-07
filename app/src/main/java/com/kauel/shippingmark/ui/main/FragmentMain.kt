@@ -2,8 +2,10 @@ package com.kauel.shippingmark.ui.main
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity.DOWNLOAD_SERVICE
 import android.app.Activity.RESULT_OK
 import android.app.Dialog
+import android.app.DownloadManager
 import android.app.NotificationManager
 import android.content.*
 import android.content.pm.PackageManager
@@ -12,20 +14,20 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.provider.MediaStore.Images
 import android.provider.Settings
 import android.util.Log
 import android.view.View
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.RelativeLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
@@ -36,13 +38,14 @@ import com.kauel.shippingmark.databinding.FragmentMainBinding
 import com.kauel.shippingmark.ui.fragment_dialog.*
 import com.kauel.shippingmark.utils.*
 import dagger.hilt.android.AndroidEntryPoint
+import io.sentry.Sentry
 import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
 import org.pytorch.Module
 import org.pytorch.torchvision.TensorImageUtils
 import java.io.*
 import java.time.LocalDateTime
-import java.util.*
+import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
 class FragmentMain : Fragment(R.layout.fragment_main) {
@@ -57,6 +60,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
     private var idPhone: String? = null
     private var idTransport: String? = null
     private var rutOperator: String? = null
+    private var countLabels: Int = 0
 
     private val REQUEST_IMAGE_CAPTURE_1 = 1
     private val REQUEST_IMAGE_CAPTURE_2 = 2
@@ -100,17 +104,42 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
     private var fileTemp3: String = ""
     private var fileTemp4: String = ""
 
+    private var listMark1: ArrayList<Result> = ArrayList()
+    private var listMark2: ArrayList<Result> = ArrayList()
+    private var listMark3: ArrayList<Result> = ArrayList()
+    private var listMark4: ArrayList<Result> = ArrayList()
+
     private var listImage: ArrayList<Uri> = ArrayList()
     private val codePermission = 2106
+
+    private var mModule: Module? = null
+    private lateinit var safeContext: Context
+
+//    private var executeMainPallet: Boolean = false
+    private var showDialogFullScreen1: Boolean = true
+    private var showDialogFullScreen2: Boolean = true
+    private var showDialogFullScreen3: Boolean = true
+    private var showDialogFullScreen4: Boolean = true
+
+    private val dfSendData = DialogFragmentSendData()
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        safeContext = context
+    }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val fragmentBinding = FragmentMainBinding.bind(view)
         binding = fragmentBinding
-        init()
-        setUpView()
-        initObserver()
+        try {
+            init()
+            setUpView()
+            initObserver()
+        } catch (ex: Exception) {
+            Sentry.captureException(ex)
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -123,7 +152,9 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         binding?.apply {
             tvBase.text = base
             tvId.text = "ID: $idTransport"
+            tvCountLabels.text = countLabels.toString()
             //edtCodeUMP.setText("100000000025123625")
+
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             @SuppressLint("HardwareIds")
@@ -135,12 +166,44 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         notificationManager =
             requireActivity().getSystemService(AppCompatActivity.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(NOTIFICATION_ID)
+
+        loadModuleIA()
+
+//        val url = "https://drive.google.com/file/d/1ImBUKEabFrAvxxXs_zEiRT0vCMGrVrSa/view?usp=sharing"
+//        downloadFile(url)
+//        val br = object : BroadcastReceiver() {
+//            override fun onReceive(context: Context?, intent: Intent?) {
+//                val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+//                if (id == myDownload) {
+//                    view?.makeSnackbar("Download completed", VIEW_SUCCESS)
+//                    loadModuleIA()
+//                }
+//            }
+//        }
+//        requireActivity().registerReceiver(br, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+    }
+
+    var myDownload: Long = 0
+    private fun downloadFile(url: String) {
+        val request = DownloadManager.Request(
+            Uri.parse(url))
+            .setTitle("agrosuper_22_06_22_yolov5l.torchscript.ptl")
+            .setDescription("Model yolov")
+            .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES,
+                File.separator + "agrosuper_22_06_22_yolov5l.torchscript.ptl")
+            .setAllowedOverMetered(true)
+
+        val dm = requireActivity().getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+        myDownload = dm.enqueue(request)
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun setUpView() {
         val dialog = DialogFragmentManualCount()
         val dialogFullScreen = DialogFragmentFullScreen()
+        dialogFullScreen.isCancelable = false
         binding?.apply {
             val values = ContentValues()
             values.put(MediaStore.Images.Media.TITLE, "New Picture")
@@ -160,9 +223,13 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             imageUri1 = activity?.contentResolver?.insert(
                                 Images.Media.EXTERNAL_CONTENT_URI, values
                             )
+                            showImage1 = false
+                            showDialogFullScreen1 = true
                             takePicture(REQUEST_IMAGE_CAPTURE_1, imageUri1!!)
+//                            takePhoto()
                         } else {
-                            if (!dialogFullScreen.isAdded) {
+                            if (!dialogFullScreen.isAdded && showDialogFullScreen1) {
+                                showDialogFullScreen1 = false
                                 dialogFullScreen.setTargetFragment(this@FragmentMain,
                                     REQUEST_FULLSCREEN_1)
                                 val args = Bundle()
@@ -194,9 +261,12 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                 Images.Media.EXTERNAL_CONTENT_URI,
                                 values
                             )
+                            showImage2 = false
+                            showDialogFullScreen2 = true
                             takePicture(REQUEST_IMAGE_CAPTURE_2, imageUri2!!)
                         } else {
-                            if (!dialogFullScreen.isAdded) {
+                            if (!dialogFullScreen.isAdded && showDialogFullScreen2) {
+                                showDialogFullScreen1 = false
                                 dialogFullScreen.setTargetFragment(this@FragmentMain,
                                     REQUEST_FULLSCREEN_2)
                                 val args = Bundle()
@@ -228,9 +298,12 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                 Images.Media.EXTERNAL_CONTENT_URI,
                                 values
                             )
+                            showImage3 = false
+                            showDialogFullScreen3 = true
                             takePicture(REQUEST_IMAGE_CAPTURE_3, imageUri3!!)
                         } else {
-                            if (!dialogFullScreen.isAdded) {
+                            if (!dialogFullScreen.isAdded && showDialogFullScreen3) {
+                                showDialogFullScreen3 = false
                                 dialogFullScreen.setTargetFragment(this@FragmentMain,
                                     REQUEST_FULLSCREEN_3)
                                 val args = Bundle()
@@ -262,9 +335,12 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                 Images.Media.EXTERNAL_CONTENT_URI,
                                 values
                             )
+                            showImage4 = false
+                            showDialogFullScreen4 = true
                             takePicture(REQUEST_IMAGE_CAPTURE_4, imageUri4!!)
                         } else {
-                            if (!dialogFullScreen.isAdded) {
+                            if (!dialogFullScreen.isAdded && showDialogFullScreen4) {
+                                showDialogFullScreen4 = false
                                 dialogFullScreen.setTargetFragment(this@FragmentMain,
                                     REQUEST_FULLSCREEN_4)
                                 val args = Bundle()
@@ -342,6 +418,64 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                     }
                 }
             }
+            tvValidate1.setOnClickListener {
+                if (stateImage1) {
+                    manualData(
+                        textView = tvCountImage1,
+                        relativeLayout = rl1,
+                        imageView = ivResultPhoto1,
+                        value = tvCountImage1.text.toString(),
+                        numberImage = 1,
+                    )
+                }
+            }
+            tvValidate2.setOnClickListener {
+                if (stateImage2) {
+                    manualData(
+                        textView = tvCountImage2,
+                        relativeLayout = rl2,
+                        imageView = ivResultPhoto2,
+                        value = tvCountImage2.text.toString(),
+                        numberImage = 2,
+                    )
+                }
+            }
+            tvValidate3.setOnClickListener {
+                if (stateImage3) {
+                    manualData(
+                        textView = tvCountImage3,
+                        relativeLayout = rl3,
+                        imageView = ivResultPhoto3,
+                        value = tvCountImage3.text.toString(),
+                        numberImage = 3,
+                    )
+                }
+            }
+            tvValidate4.setOnClickListener {
+                if (stateImage4) {
+                    manualData(
+                        textView = tvCountImage4,
+                        relativeLayout = rl4,
+                        imageView = ivResultPhoto4,
+                        value = tvCountImage4.text.toString(),
+                        numberImage = 4,
+                    )
+                }
+            }
+//            cvIA.setOnClickListener {
+//                if (executeMainPallet) {
+//                    executeMainPallet = false
+//                    cvIA.background.setTint(Color.parseColor("#7B7D7D"))
+//                    view?.makeSnackbar("Conteo de etiquetas pallet principal desactivado",
+//                        VIEW_ERROR)
+//                } else {
+//                    executeMainPallet = true
+//                    cvIA.background.setTint(Color.parseColor("#EE7508"))
+//                    view?.makeSnackbar("Conteo de etiquetas pallet principal activado",
+//                        VIEW_SUCCESS)
+//                }
+////                saveData()
+//            }
         }
     }
 
@@ -391,21 +525,26 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                 rut_operador = rutOperator.toString(),
                 name_image1 = list[0],
                 number_labels1 = numberLabels1,
-                number_box1 = numberBox1,
+                number_box1 = numberLabels1,
                 manual1 = state1 == STATE_MANUAL,
+                list_mark1 = listMark1,
                 name_image2 = list[1],
                 number_labels2 = numberLabels2,
-                number_box2 = numberBox2,
+                number_box2 = numberLabels2,
                 manual2 = state2 == STATE_MANUAL,
+                list_mark2 = listMark2,
                 name_image3 = list[2],
                 number_labels3 = numberLabels3,
-                number_box3 = numberBox3,
+                number_box3 = numberLabels3,
                 manual3 = state3 == STATE_MANUAL,
+                list_mark3 = listMark3,
                 name_image4 = list[3],
                 number_labels4 = numberLabels4,
-                number_box4 = numberBox4,
+                number_box4 = numberLabels4,
                 manual4 = state4 == STATE_MANUAL,
+                list_mark4 = listMark4,
             )
+            countLabels += numberLabels1 + numberLabels2 + numberLabels3 + numberLabels4
             viewModel.sendData(data)
         }
     }
@@ -455,12 +594,9 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
 
     private fun showSuccessView(data: ResponseSendData?) {
         customProgressDialog.dismiss()
-        if (!customProgressDialog.isShowing) {
-            val dialogFragment = DialogFragmentSendData()
-            dialogFragment.setTargetFragment(this@FragmentMain, REQUEST_SENDDATA)
-            dialogFragment.isCancelable = false
-            dialogFragment.show(this@FragmentMain.requireFragmentManager(), CUSTOM_DIALOG_SEND)
-        }
+        dfSendData.setTargetFragment(this@FragmentMain, REQUEST_SENDDATA)
+        dfSendData.isCancelable = false
+        dfSendData.show(this@FragmentMain.requireFragmentManager(), CUSTOM_DIALOG_SEND)
     }
 
     private fun showLoadingView() {
@@ -605,7 +741,6 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         mBitmap = rotated!!,
                                         imageView = img1,
                                         progressBar = pbImage1,
-                                        resultView = resultView1,
                                         imageViewResult = ivResultPhoto1,
                                         textView = tvCountImage1,
                                         textViewTotal = tvCountTotalImage1,
@@ -636,7 +771,6 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         mBitmap = rotated!!,
                                         imageView = img2,
                                         progressBar = pbImage2,
-                                        resultView = resultView2,
                                         imageViewResult = ivResultPhoto2,
                                         textView = tvCountImage2,
                                         textViewTotal = tvCountTotalImage2,
@@ -667,7 +801,6 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         mBitmap = rotated!!,
                                         imageView = img3,
                                         progressBar = pbImage3,
-                                        resultView = resultView3,
                                         imageViewResult = ivResultPhoto3,
                                         textView = tvCountImage3,
                                         textViewTotal = tvCountTotalImage3,
@@ -698,7 +831,6 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                         mBitmap = rotated!!,
                                         imageView = img4,
                                         progressBar = pbImage4,
-                                        resultView = resultView4,
                                         imageViewResult = ivResultPhoto4,
                                         textView = tvCountImage4,
                                         textViewTotal = tvCountTotalImage4,
@@ -714,7 +846,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                         }
                         REQUEST_DIALOGFRAGMENT_1 -> {
                             val value = data?.extras?.getString("value", "0")
-                            if (value != null && value.toInt() > 0) {
+                            if (value != null && value.toInt() >= 0) {
                                 manualData(textView = tvCountImage1,
                                     relativeLayout = rl1,
                                     imageView = ivResultPhoto1,
@@ -726,7 +858,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                         }
                         REQUEST_DIALOGFRAGMENT_2 -> {
                             val value = data?.extras?.getString("value", "0")
-                            if (value != null && value.toInt() > 0) {
+                            if (value != null && value.toInt() >= 0) {
                                 manualData(textView = tvCountImage2,
                                     relativeLayout = rl2,
                                     imageView = ivResultPhoto2,
@@ -738,7 +870,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                         }
                         REQUEST_DIALOGFRAGMENT_3 -> {
                             val value = data?.extras?.getString("value", "0")
-                            if (value != null && value.toInt() > 0) {
+                            if (value != null && value.toInt() >= 0) {
                                 manualData(textView = tvCountImage3,
                                     relativeLayout = rl3,
                                     imageView = ivResultPhoto3,
@@ -750,7 +882,7 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                         }
                         REQUEST_DIALOGFRAGMENT_4 -> {
                             val value = data?.extras?.getString("value", "0")
-                            if (value != null && value.toInt() > 0) {
+                            if (value != null && value.toInt() >= 0) {
                                 manualData(textView = tvCountImage4,
                                     relativeLayout = rl4,
                                     imageView = ivResultPhoto4,
@@ -768,8 +900,9 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                 clearImage(image = img1,
                                     relativeLayout = rl1,
                                     imageView = ivResultPhoto1,
-                                    textView = tvCountImage1,
-                                    resultView = resultView1)
+                                    textView = tvCountImage1)
+                            } else {
+                                showDialogFullScreen1 = true
                             }
                         }
                         REQUEST_FULLSCREEN_2 -> {
@@ -780,8 +913,9 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                 clearImage(image = img2,
                                     relativeLayout = rl2,
                                     imageView = ivResultPhoto2,
-                                    textView = tvCountImage2,
-                                    resultView = resultView2)
+                                    textView = tvCountImage2)
+                            } else {
+                                showDialogFullScreen2 = true
                             }
                         }
                         REQUEST_FULLSCREEN_3 -> {
@@ -792,8 +926,9 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                 clearImage(image = img3,
                                     relativeLayout = rl3,
                                     imageView = ivResultPhoto3,
-                                    textView = tvCountImage3,
-                                    resultView = resultView3)
+                                    textView = tvCountImage3)
+                            } else {
+                                showDialogFullScreen3 = true
                             }
                         }
                         REQUEST_FULLSCREEN_4 -> {
@@ -804,14 +939,17 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                                 clearImage(image = img4,
                                     relativeLayout = rl4,
                                     imageView = ivResultPhoto4,
-                                    textView = tvCountImage4,
-                                    resultView = resultView4)
+                                    textView = tvCountImage4)
+                            } else {
+                                showDialogFullScreen4 = true
                             }
                         }
                         REQUEST_SENDDATA -> {
-                            val status = data?.extras?.getBoolean("new", false)
-                            if (status == true) {
-                                clearAll()
+                            dfSendData.dismiss()
+                            clearAll()
+                            val status = data?.extras?.getBoolean("new", true)
+                            if (status == false) {
+                                findNavController().lifeCycleNavigate(lifecycleScope, R.id.fragmentMenuPallet)
                             }
                         }
                         else -> {}//view?.makeSnackbar("CANCELED", VIEW_ERROR)
@@ -823,24 +961,11 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         }
     }
 
-    private fun processIaImage(
-        mBitmap: Bitmap,
-        imageView: ImageView,
-        progressBar: ProgressBar,
-        resultView: ResultView,
-        imageViewResult: ImageView,
-        textView: TextView,
-        textViewTotal: TextView,
-        relativeLayout: RelativeLayout,
-        numberImage: Int,
-        textViewBox: TextView,
-        file: File,
-    ) {
-
-        var mModule: Module? = null
-
+    private fun loadModuleIA() {
         try {
-            mModule = LiteModuleLoader.load(assetFilePath(requireContext(), ASSETS_NAME))
+            mModule = LiteModuleLoader.load(assetFilePath(safeContext, ASSETS_NAME))
+//            val file = File(Environment.DIRECTORY_PICTURES, File.separator + "agrosuper_22_06_22_yolov5l.torchscript.ptl")
+//            mModule = LiteModuleLoader.load(file.absolutePath)
             val br =
                 BufferedReader(InputStreamReader(requireActivity().assets.open(FILE_NAME_ASSETS)))
             var classes: MutableList<String> = ArrayList()
@@ -852,15 +977,30 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         } catch (e: IOException) {
             Log.e("Object Detection", "Error reading assets", e)
         }
+    }
+
+    private fun processIaImage(
+        mBitmap: Bitmap,
+        imageView: ImageView,
+        progressBar: ProgressBar,
+        imageViewResult: ImageView,
+        textView: TextView,
+        textViewTotal: TextView,
+        relativeLayout: RelativeLayout,
+        numberImage: Int,
+        textViewBox: TextView,
+        file: File,
+    ) {
 
         relativeLayout.setBackgroundResource(R.drawable.img_standard)
         imageViewResult.gone()
-        resultView.gone()
         imageView.setImageBitmap(mBitmap)
         progressBar.visible()
 
         mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(file))
-        val canvas = Canvas(mBitmap)
+        val mutableBitmap: Bitmap = mBitmap.copy(Bitmap.Config.ARGB_8888, true)
+        imageView.setImageBitmap(mutableBitmap)
+        val canvas = Canvas(mutableBitmap)
 
         val mImgScaleX = mBitmap.width.toFloat() / PrePostProcessor.mInputWidth
         val mImgScaleY = mBitmap.height.toFloat() / PrePostProcessor.mInputHeight
@@ -894,13 +1034,38 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                     mStartX,
                     mStartY)
 
+                val listPallet = ArrayList<Result>()
+                val listLabel = ArrayList<Result>()
+
+                results.map { result ->
+                    if (result.classIndex == 0) {
+                        listPallet.add(result)
+                    }
+                    if (result.classIndex == 1) {
+                        listLabel.add(result)
+                    }
+                }
+
+                var palletRect = Rect()
+                var areaPallet = 0
+
+                listPallet.map {
+                    val top = it.rect.top
+                    val bottom = it.rect.bottom
+                    val left = it.rect.left
+                    val right = it.rect.right
+                    val area = (bottom - top) * (right - left)
+                    if (area > areaPallet) {
+                        areaPallet = area
+                        palletRect = it.rect
+                    }
+                }
+
                 val resultsLabel = ArrayList<Result>()
-                val resultsBox = ArrayList<Result>()
-                for (res in results) {
-                    if (res.classIndex == 2) {
-                        resultsLabel.add(res)
-                    } else {
-                        resultsBox.add(res)
+
+                listLabel.map {
+                    if (compareRect(palletRect, it.rect)) {
+                        resultsLabel.add(it)
                     }
                 }
 
@@ -908,34 +1073,30 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                     val total = textViewTotal.text.toString().toInt()
                     val mPaintRectangle = Paint()
 
-                    textViewBox.text = resultsBox.size.toString()
+                    textViewBox.text = resultsLabel.size.toString()
                     textView.text = resultsLabel.size.toString()
-                    for (result in results) {
-                        mPaintRectangle.strokeWidth = 40f
-                        mPaintRectangle.style = Paint.Style.STROKE
-                        when (result.classIndex) {
-                            1 -> {
-                                mPaintRectangle.color = Color.GREEN
-                            }
-                            2 -> {
-                                mPaintRectangle.color = Color.RED
-                            }
-                            3 -> {
-                                mPaintRectangle.color = Color.YELLOW
-                            }
-                        }
-                        canvas.drawRect(result.rect, mPaintRectangle)
+
+                    mPaintRectangle.strokeWidth = 30f
+                    mPaintRectangle.style = Paint.Style.STROKE
+                    mPaintRectangle.color = Color.YELLOW
+                    canvas.drawRect(palletRect, mPaintRectangle)
+
+                    resultsLabel.map {
+                        mPaintRectangle.strokeWidth = 10f
+                        mPaintRectangle.color = Color.GREEN
+                        canvas.drawRect(it.rect, mPaintRectangle)
                     }
-                    val file = bitmapToFile(mBitmap, file.path)
+
+                    val fileTemp = bitmapToFile(mutableBitmap, file.path)
                     progressBar.gone()
                     var state = false
                     if (resultsLabel.size == total) {
                         relativeLayout.setBackgroundResource(R.drawable.img_success)
-                        imageViewResult.setImageResource(R.drawable.success)
+                        imageViewResult.setImageResource(R.drawable.icono_check)
                         state = true
                     } else {
                         relativeLayout.setBackgroundResource(R.drawable.img_error)
-                        imageViewResult.setImageResource(R.drawable.error)
+                        imageViewResult.setImageResource(R.drawable.icono_equis)
                     }
                     when (numberImage) {
                         1 -> {
@@ -944,10 +1105,10 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             } else {
                                 STATE_ERROR
                             }
-                            if (file != null) {
-                                fileTemp1 = file.path
+                            if (fileTemp != null) {
+                                fileTemp1 = fileTemp.path
                             }
-                            showImage1 = false
+                            listMark1 = results
                             stateImage1 = true
                         }
                         2 -> {
@@ -956,9 +1117,10 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             } else {
                                 STATE_ERROR
                             }
-                            if (file != null) {
-                                fileTemp2 = file.path
+                            if (fileTemp != null) {
+                                fileTemp2 = fileTemp.path
                             }
+                            listMark2 = results
                             showImage2 = false
                             stateImage2 = true
                         }
@@ -968,9 +1130,10 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             } else {
                                 STATE_ERROR
                             }
-                            if (file != null) {
-                                fileTemp3 = file.path
+                            if (fileTemp != null) {
+                                fileTemp3 = fileTemp.path
                             }
+                            listMark3 = results
                             showImage3 = false
                             stateImage3 = true
                         }
@@ -980,9 +1143,10 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
                             } else {
                                 STATE_ERROR
                             }
-                            if (file != null) {
-                                fileTemp4 = file.path
+                            if (fileTemp != null) {
+                                fileTemp4 = fileTemp.path
                             }
+                            listMark4 = results
                             showImage4 = false
                             stateImage4 = true
                         }
@@ -993,6 +1157,20 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
             }
         }
         timer.start()
+    }
+
+    //TODO modifcar este metodo para que realice bien la deteccion del palet principal
+    private fun compareRect(firstRect: Rect, secondRect: Rect): Boolean {
+        val x = (secondRect.right + secondRect.left) / 2
+        val y = (secondRect.bottom + secondRect.top) / 2
+        if (firstRect.left <= x &&
+            firstRect.right >= x &&
+            firstRect.top <= y &&
+            firstRect.bottom >= y
+        ) {
+            return true
+        }
+        return false
     }
 
     private fun bitmapToFile(
@@ -1025,9 +1203,11 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
     @Throws(IOException::class)
     private fun assetFilePath(context: Context, assetName: String?): String? {
         val file = File(context.filesDir, assetName)
+//        val file = File(Environment.DIRECTORY_PICTURES, File.separator + "agrosuper_22_06_22_yolov5l.torchscript.ptl")
         if (file.exists() && file.length() > 0) {
             return file.absolutePath
         }
+
         context.assets.open(assetName!!).use { `is` ->
             FileOutputStream(file).use { os ->
                 val buffer = ByteArray(4 * 1024)
@@ -1039,6 +1219,18 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
             }
             return file.absolutePath
         }
+
+//        file.inputStream().use { `is` ->
+//            FileOutputStream(file).use { os ->
+//                val buffer = ByteArray(4 * 1024)
+//                var read: Int
+//                while (`is`.read(buffer).also { read = it } != -1) {
+//                    os.write(buffer, 0, read)
+//                }
+//                os.flush()
+//            }
+//            return file.absolutePath
+//        }
     }
 
     @Throws(IOException::class)
@@ -1086,22 +1278,6 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         }
     }
 
-    private fun getImageUri(inContext: Context, inImage: Bitmap, title: String): Uri? {
-        val bytes = ByteArrayOutputStream()
-        inImage.compress(Bitmap.CompressFormat.PNG, 100, bytes)
-        val path =
-            Images.Media.insertImage(inContext.contentResolver, inImage, title, null)
-        return Uri.parse(path)
-    }
-
-//    private fun getRealPathFromURI(uri: Uri?): String? {
-//        val cursor: Cursor? =
-//            uri?.let { activity?.contentResolver?.query(it, null, null, null, null) }
-//        cursor?.moveToFirst()
-//        val idx: Int? = cursor?.getColumnIndex(Images.ImageColumns.DATA)
-//        return idx?.let { cursor.getString(it) }
-//    }
-
     private fun validateFields(): Boolean {
         binding?.apply {
             if (edtCodeUMP.text.trim().isEmpty()) {
@@ -1129,39 +1305,20 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
         relativeLayout: RelativeLayout,
         imageView: ImageView,
         textView: TextView,
-        resultView: ResultView,
     ) {
-        image.setImageResource(R.drawable.camera)
+        image.setImageResource(R.drawable.icono_camara)
         relativeLayout.setBackgroundResource(R.drawable.img_standard)
         imageView.gone()
         textView.text = "0"
-        resultView.gone()
-    }
-
-    private fun requestDeletePermission(uriList: List<Uri>) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val pi = MediaStore.createDeleteRequest(requireActivity().contentResolver, uriList)
-            try {
-                startIntentSenderForResult(
-                    pi.intentSender, 1, null, 0, 0,
-                    0, null
-                )
-            } catch (e: IntentSender.SendIntentException) {
-            }
-        } else {
-            uriList.map {
-                requireActivity().contentResolver.delete(it, null, null)
-            }
-        }
     }
 
     private fun clearAll() {
         binding?.apply {
             edtCodeUMP.setText("")
-            img1.setImageResource(R.drawable.camera)
-            img2.setImageResource(R.drawable.camera)
-            img3.setImageResource(R.drawable.camera)
-            img4.setImageResource(R.drawable.camera)
+            img1.setImageResource(R.drawable.icono_camara)
+            img2.setImageResource(R.drawable.icono_camara)
+            img3.setImageResource(R.drawable.icono_camara)
+            img4.setImageResource(R.drawable.icono_camara)
             rl1.setBackgroundResource(R.drawable.img_standard)
             rl2.setBackgroundResource(R.drawable.img_standard)
             rl3.setBackgroundResource(R.drawable.img_standard)
@@ -1178,6 +1335,15 @@ class FragmentMain : Fragment(R.layout.fragment_main) {
             showImage2 = true
             showImage3 = true
             showImage4 = true
+            imageUri1 = null
+            imageUri2 = null
+            imageUri3 = null
+            imageUri4 = null
+            fileTemp1 = ""
+            fileTemp2 = ""
+            fileTemp3 = ""
+            fileTemp4 = ""
+            tvCountLabels.text = countLabels.toString()
         }
     }
 

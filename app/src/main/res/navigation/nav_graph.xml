@@ -22,6 +22,9 @@
         <action
             android:id="@+id/action_fragmentMain_to_fragmentMenuPallet"
             app:destination="@id/fragmentMenuPallet" />
+        <action
+            android:id="@+id/action_fragmentMain_to_cameraX"
+            app:destination="@id/cameraX" />
     </fragment>
     <fragment
         android:id="@+id/fragmentMenuPallet"
@@ -43,6 +46,15 @@
         <action
             android:id="@+id/action_fragmentUploadImage_to_fragmentMenuPallet"
             app:destination="@id/fragmentMenuPallet" />
+    </fragment>
+    <fragment
+        android:id="@+id/cameraX"
+        android:name="com.kauel.shippingmark.ui.cameraX.CameraX"
+        android:label="CameraX"
+        tools:layout="@layout/fragment_camerax">
+        <action
+            android:id="@+id/action_cameraX_to_fragmentMain"
+            app:destination="@id/fragmentMain" />
     </fragment>
 
 </navigation>

@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
+        android:gravity="center"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -19,13 +20,12 @@
         <LinearLayout
             android:layout_width="200dp"
             android:layout_height="wrap_content"
-            android:layout_margin="20dp"
+            android:layout_margin="3dp"
             android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp">
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:id="@+id/tvBase"
@@ -43,6 +43,27 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp">
+
+                <TextView
+                    style="@style/body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/count_labels" />
+
+                <TextView
+                    android:id="@+id/tvCountLabels"
+                    style="@style/body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    tools:text="200" />
+
+            </LinearLayout>
+
             <TextView
                 style="@style/body"
                 android:layout_width="match_parent"
@@ -55,10 +76,11 @@
             android:id="@+id/imgScanner"
             style="@style/img_button"
             android:layout_width="100dp"
-            android:layout_height="80dp"
+            android:layout_height="70dp"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="10dp"
-            android:src="@drawable/barcode_scanner" />
+            android:padding="5dp"
+            android:src="@drawable/codigo_scan" />
 
     </LinearLayout>
 
@@ -67,6 +89,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="40dp"
+        android:layout_marginTop="8dp"
         android:layout_marginRight="40dp"
         android:background="@drawable/edit_text_bg"
         android:ellipsize="end"
@@ -86,13 +109,32 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
         android:gravity="center"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edtCodeUMP">
+        app:layout_constraintTop_toBottomOf="@+id/edtCodeUMP"
+        android:visibility="gone">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cvIA"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="10dp"
+            android:backgroundTint="@color/grey"
+            app:cardCornerRadius="50dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="SP"
+                android:textColor="@color/white"
+                android:textSize="20sp" />
+
+        </androidx.cardview.widget.CardView>
 
         <TextView
             style="@style/body"
@@ -105,20 +147,20 @@
             style="@style/img_button"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginStart="20dp"
+            android:layout_marginStart="10dp"
             android:src="@drawable/ic_baseline_info" />
 
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/linearLayout4"
+        style="@style/container_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="8dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="5dp"
         app:layout_constraintEnd_toEndOf="@+id/linearLayout5"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -126,21 +168,16 @@
 
         <RelativeLayout
             android:id="@+id/rl1"
-            style="@style/img_standard"
-            android:layout_width="160dp"
-            android:layout_height="160dp">
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp">
 
             <ImageView
                 android:id="@+id/img_1"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
+                android:layout_width="150dp"
+                android:layout_height="130dp"
                 android:padding="5dp"
-                android:src="@drawable/camera" />
-
-            <com.kauel.shippingmark.ui.main.ResultView
-                android:id="@+id/resultView1"
-                android:layout_width="160dp"
-                android:layout_height="160dp" />
+                android:src="@drawable/icono_camara" />
 
             <TextView
                 style="@style/img_button"
@@ -170,7 +207,7 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginEnd="10dp"
                 android:visibility="gone"
-                tools:src="@drawable/error"
+                tools:src="@drawable/icono_equis"
                 tools:visibility="visible" />
 
         </RelativeLayout>
@@ -178,15 +215,28 @@
         <LinearLayout
             android:id="@+id/lyManual1"
             style="@style/menu_bottom_image"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="6dp">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tvManual1"
+                style="@style/button.blue"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:text="M"
+                android:textAlignment="center" />
 
             <LinearLayout
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal">
+                android:layout_gravity="center_horizontal"
+                android:gravity="center">
 
                 <TextView
                     android:id="@+id/tvCountImage1"
@@ -218,19 +268,17 @@
                     android:id="@+id/tvCountBox1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvManual1"
-                style="@style/body"
-                android:layout_width="30dp"
-                android:layout_height="wrap_content"
-                android:background="@color/blue"
-                android:text="M"
-                android:textAlignment="center"
-                android:textColor="@color/white" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tvValidate1"
+                style="@style/button.blue"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:text="V"
+                android:textAlignment="center" />
 
         </LinearLayout>
 
@@ -238,33 +286,28 @@
 
     <LinearLayout
         android:id="@+id/linearLayout5"
+        style="@style/container_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="20dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
 
         <RelativeLayout
             android:id="@+id/rl2"
-            style="@style/img_standard"
-            android:layout_width="160dp"
-            android:layout_height="160dp">
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp">
 
             <ImageView
                 android:id="@+id/img_2"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
+                android:layout_width="150dp"
+                android:layout_height="130dp"
                 android:padding="5dp"
-                android:src="@drawable/camera" />
-
-            <com.kauel.shippingmark.ui.main.ResultView
-                android:id="@+id/resultView2"
-                android:layout_width="160dp"
-                android:layout_height="160dp" />
+                android:src="@drawable/icono_camara" />
 
             <TextView
                 style="@style/img_button"
@@ -295,7 +338,7 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginEnd="10dp"
                 android:visibility="gone"
-                tools:src="@drawable/success"
+                tools:src="@drawable/icono_check"
                 tools:visibility="visible" />
 
         </RelativeLayout>
@@ -303,15 +346,28 @@
         <LinearLayout
             android:id="@+id/lyManual2"
             style="@style/menu_bottom_image"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="6dp">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tvManual2"
+                style="@style/button.blue"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:text="M"
+                android:textAlignment="center" />
 
             <LinearLayout
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal">
+                android:layout_gravity="center_horizontal"
+                android:gravity="center">
 
                 <TextView
                     android:id="@+id/tvCountImage2"
@@ -343,19 +399,17 @@
                     android:id="@+id/tvCountBox2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvManual2"
-                style="@style/body"
-                android:layout_width="30dp"
-                android:layout_height="wrap_content"
-                android:background="@color/blue"
-                android:text="M"
-                android:textAlignment="center"
-                android:textColor="@color/white" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tvValidate2"
+                style="@style/button.blue"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:text="V"
+                android:textAlignment="center" />
 
         </LinearLayout>
 
@@ -363,14 +417,13 @@
 
     <LinearLayout
         android:id="@+id/linearLayout8"
+        style="@style/container_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:gravity="center"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="5dp"
         app:layout_constraintEnd_toEndOf="@+id/linearLayout7"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -378,21 +431,16 @@
 
         <RelativeLayout
             android:id="@+id/rl3"
-            style="@style/img_standard"
-            android:layout_width="160dp"
-            android:layout_height="160dp">
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp">
 
             <ImageView
                 android:id="@+id/img_3"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
+                android:layout_width="150dp"
+                android:layout_height="130dp"
                 android:padding="5dp"
-                android:src="@drawable/camera" />
-
-            <com.kauel.shippingmark.ui.main.ResultView
-                android:id="@+id/resultView3"
-                android:layout_width="160dp"
-                android:layout_height="160dp" />
+                android:src="@drawable/icono_camara" />
 
             <TextView
                 style="@style/img_button"
@@ -422,7 +470,7 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginEnd="10dp"
                 android:visibility="gone"
-                tools:src="@drawable/success"
+                tools:src="@drawable/icono_check"
                 tools:visibility="visible" />
 
         </RelativeLayout>
@@ -430,15 +478,28 @@
         <LinearLayout
             android:id="@+id/lyManual3"
             style="@style/menu_bottom_image"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="6dp">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tvManual3"
+                style="@style/button.blue"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:text="M"
+                android:textAlignment="center" />
 
             <LinearLayout
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal">
+                android:layout_gravity="center_horizontal"
+                android:gravity="center">
 
                 <TextView
                     android:id="@+id/tvCountImage3"
@@ -470,19 +531,17 @@
                     android:id="@+id/tvCountBox3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvManual3"
-                style="@style/body"
-                android:layout_width="30dp"
-                android:layout_height="wrap_content"
-                android:background="@color/blue"
-                android:text="M"
-                android:textAlignment="center"
-                android:textColor="@color/white" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tvValidate3"
+                style="@style/button.blue"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:text="V"
+                android:textAlignment="center" />
 
         </LinearLayout>
 
@@ -490,33 +549,28 @@
 
     <LinearLayout
         android:id="@+id/linearLayout7"
+        style="@style/container_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="20dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout5">
 
         <RelativeLayout
             android:id="@+id/rl4"
-            style="@style/img_standard"
-            android:layout_width="160dp"
-            android:layout_height="160dp">
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp">
 
             <ImageView
                 android:id="@+id/img_4"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
+                android:layout_width="150dp"
+                android:layout_height="130dp"
                 android:padding="5dp"
-                android:src="@drawable/camera" />
-
-            <com.kauel.shippingmark.ui.main.ResultView
-                android:id="@+id/resultView4"
-                android:layout_width="160dp"
-                android:layout_height="160dp" />
+                android:src="@drawable/icono_camara" />
 
             <TextView
                 style="@style/img_button"
@@ -547,7 +601,7 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginEnd="10dp"
                 android:visibility="gone"
-                tools:src="@drawable/success"
+                tools:src="@drawable/icono_check"
                 tools:visibility="visible" />
 
         </RelativeLayout>
@@ -555,15 +609,28 @@
         <LinearLayout
             android:id="@+id/lyManual4"
             style="@style/menu_bottom_image"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="6dp">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tvManual4"
+                style="@style/button.blue"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:text="M"
+                android:textAlignment="center" />
 
             <LinearLayout
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal">
+                android:layout_gravity="center_horizontal"
+                android:gravity="center">
 
                 <TextView
                     android:id="@+id/tvCountImage4"
@@ -595,19 +662,17 @@
                     android:id="@+id/tvCountBox4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvManual4"
-                style="@style/body"
-                android:layout_width="30dp"
-                android:layout_height="wrap_content"
-                android:background="@color/blue"
-                android:text="M"
-                android:textAlignment="center"
-                android:textColor="@color/white" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tvValidate4"
+                style="@style/button.blue"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:text="V"
+                android:textAlignment="center" />
 
         </LinearLayout>
 
@@ -622,12 +687,12 @@
         android:text="@string/send"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout8"/>
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout8" />
 
     <ImageView
         android:id="@+id/ivResultPhoto5"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
